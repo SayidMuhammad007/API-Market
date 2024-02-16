@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AccessController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,10 +30,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     ]);
 });
 Route::post('/login', [UserController::class, 'login']);
+
+
 Route::middleware(['auth:sanctum'])->group(function () {
     // Users routes
-    Route::get('/users', [UserController::class, 'index']);
     Route::post('/user', [UserController::class, 'store']);
+    Route::get('/users', [UserController::class, 'index']);
+
 
     // Access routes
     Route::get('/access', [AccessController::class, 'index']);
@@ -45,4 +49,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Category routes
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/category', [CategoryController::class, 'store']);
+
+    // Company routes
+    Route::get('/companies', [CompanyController::class, 'index']);
+    Route::post('/company', [CompanyController::class,'store']);
 });
