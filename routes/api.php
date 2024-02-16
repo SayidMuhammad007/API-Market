@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AccessController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,4 +54,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Company routes
     Route::get('/companies', [CompanyController::class, 'index']);
     Route::post('/company', [CompanyController::class,'store']);
+
+    // Type routes
+    Route::get('/types', [TypeController::class, 'index']);
+    Route::post('/type', [TypeController::class,'store']);
 });
