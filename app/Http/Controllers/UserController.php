@@ -37,12 +37,16 @@ class UserController extends Controller
         }
 
         // Validate access_id
-        $access = Access::find($request->access_id);
-        if (!$access) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid access_id',
-            ], 400);
+        $access_ids = [];
+        foreach ($request->access_id as $access_id) {
+            $access = Access::find($access_id);
+            if (!$access) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid access_id',
+                ], 400);
+            }
+            $access_ids[] = $access_id;
         }
 
         // Create a new user
@@ -53,9 +57,11 @@ class UserController extends Controller
         ]);
 
         // Create a UserAccess record for the new user
-        $newUser->userAccess()->create([
-            'access_id' => $request->access_id,
-        ]);
+        foreach ($access_ids as $access_id) {
+            $newUser->userAccess()->create([
+                'access_id' => $access_id,
+            ]);
+        }
 
         // Generate an authentication token for the new user
         $token = $newUser->createToken('auth_token')->plainTextToken;
@@ -95,7 +101,69 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        // If user exists, return error response
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found with this ID',
+            ], 201);
+        }
+
+        // Check if the phone number is already in use by another user
+        if ($request->has('phone') && $request->phone !== $user->phone) {
+            $existingUser = User::where('phone', $request->phone)->first();
+            if ($existingUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This phone number is already in use',
+                ], 400);
+            }
+        }
+        $accessIds = [];
+
+        // Validate access_id
+        if ($request->access_id) {
+            foreach ($request->access_id as $accessId) {
+                $access = Access::find($accessId);
+                if (!$access) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid access_id',
+                    ], 400);
+                }
+                $accessIds[] = $accessId;
+            }
+        }
+
+
+        // Update user details
+        $user->update([
+            'name' => $request->has('name') ? $request->name : $user->name,
+            'phone' => $request->has('phone') ? $request->phone : $user->phone,
+            'password' => $request->has('password') ? Hash::make($request->password) : $user->password,
+        ]);
+
+        // Sync user access
+        if ($accessIds) {
+            // Detach existing UserAccess records
+            $user->userAccess()->delete();
+
+
+            // Attach the new UserAccess records
+            foreach ($accessIds as $accessId) {
+                $user->userAccess()->create([
+                    'access_id' => $accessId,
+                ]);
+            }
+        }
+
+
+        // Return success response
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'user' => $user->load('userAccess.access'),
+        ], 200);
     }
 
     /**

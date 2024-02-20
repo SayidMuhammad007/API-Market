@@ -6,14 +6,14 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreUserRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -24,10 +24,13 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|min:5',
-            'phone' => 'required|min:5',
-            'password' => 'required|min:6',
-            'access_id' => 'required',
+            'name' => 'required|string|min:3',
+            'category_id' => 'required|integer',
+            'price_id' => 'required|integer',
+            'branch_id' => 'required|integer',
+            'price_come' => 'required|numeric',
+            'price_sell' => 'required|numeric',
+            'quantity' => 'required|integer',
         ];
     }
 

@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\AccessController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\PriceController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -37,6 +39,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Users routes
     Route::post('/user', [UserController::class, 'store']);
     Route::get('/users', [UserController::class, 'index']);
+    Route::post('/user/{user}', [UserController::class, 'update']);
+
 
 
     // Access routes
@@ -44,7 +48,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/access', [AccessController::class, 'store']);
 
     // Branch routes
-    Route::get('/branch', [BranchController::class, 'index']);
+    Route::get('/branches', [BranchController::class, 'index']);
     Route::post('/branch', [BranchController::class, 'store']);
 
     // Category routes
@@ -53,9 +57,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Company routes
     Route::get('/companies', [CompanyController::class, 'index']);
-    Route::post('/company', [CompanyController::class,'store']);
+    Route::post('/company', [CompanyController::class, 'store']);
 
     // Type routes
     Route::get('/types', [TypeController::class, 'index']);
-    Route::post('/type', [TypeController::class,'store']);
+    Route::post('/type', [TypeController::class, 'store']);
+
+    // Price routes
+    Route::get('/prices', [PriceController::class, 'index']);
+    Route::post('/price', [PriceController::class, 'store']);
+
+    // Product routes
+    Route::get('/products', [StoreController::class, 'index']);
+    Route::post('/product', [StoreController::class, 'store']);
 });

@@ -15,15 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
             $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('money_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('price_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('made_in');
-            $table->string('barcode');
+            $table->string('made_in')->nullable();
+            $table->string('barcode')->nullable();
             $table->string('price_come');
             $table->string('price_sell');
             $table->string('quantity');
-            $table->string('danger_count');
-            $table->integer('status');
+            $table->string('danger_count')->nullable();
+            $table->integer('status')->default(1);
             $table->timestamps();
         });
     }
