@@ -48,7 +48,8 @@ class StoreController extends Controller
                 'message' => 'Price not found'
             ], 400);
         }
-        Store::create($request->all());
+        Store::create(array_merge($request->all(), ['barcode' => $branch->barcode]));
+        $branch->update(['barcode' => ++$branch->barcode]);
 
         return response()->json([
             'success' => true,
