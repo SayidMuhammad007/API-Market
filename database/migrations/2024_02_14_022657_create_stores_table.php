@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('barcode')->nullable();
             $table->string('price_come');
             $table->string('price_sell');
+            $table->string('price_wholesale')->nullable();
             $table->string('quantity');
             $table->string('danger_count')->nullable();
             $table->integer('status')->default(1);

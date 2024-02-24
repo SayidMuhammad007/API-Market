@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreRequest;
+use App\Models\Branch;
+use App\Models\Category;
+use App\Models\Price;
 use App\Models\Store;
 use Illuminate\Http\Request;
 
@@ -13,7 +16,7 @@ class StoreController extends Controller
      */
     public function index()
     {
-        return response()->json(Store::paginate(20));
+        return response()->json(Store::with(['category', 'branch', 'price'])->paginate(20));
     }
 
     /**
@@ -21,10 +24,36 @@ class StoreController extends Controller
      */
     public function store(StoreRequest $request)
     {
-        $store = Store::create($request->all());
-        $store->category()->create([
-            'category' => $access_id,
-        ]);
+        // check category
+        $category = Category::where('id', $request->category_id)->first();
+        if (!$category) {
+            return response()->json([
+                'success' => 'false',
+                'message' => 'Category not found'
+            ], 400);
+        }
+        // check branch
+        $branch = Branch::where('id', $request->branch_id)->first();
+        if (!$branch) {
+            return response()->json([
+                'success' => 'false',
+                'message' => 'Branch not found'
+            ], 400);
+        }
+        // check price
+        $price = Price::where('id', $request->price_id)->first();
+        if (!$price) {
+            return response()->json([
+                'success' => 'false',
+                'message' => 'Price not found'
+            ], 400);
+        }
+        Store::create($request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product created successfully',
+        ], 201);
     }
 
     /**
