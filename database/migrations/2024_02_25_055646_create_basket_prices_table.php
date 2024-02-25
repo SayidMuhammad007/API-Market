@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('basket_prices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('basket_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('price_id')->constrained()->cascadeOnDelete();
             $table->decimal('agreed_price')->nullable();
             $table->decimal('total');
             $table->decimal('price_come');

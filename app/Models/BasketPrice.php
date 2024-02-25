@@ -15,6 +15,7 @@ class BasketPrice extends Model
         'total',
         'price_come',
         'price_sell',
+        'price_id'
     ];
 
     public function basket(): BelongsTo

@@ -33,7 +33,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'This phone number is already in use',
-            ], 201);
+            ], 401);
         }
 
         // Validate access_id

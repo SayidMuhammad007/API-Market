@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AccessController;
+use App\Http\Controllers\BasketController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
@@ -75,4 +76,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Customer routes
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::post('/customer', [CustomerController::class,'store']);
+
+    // Basket routes
+    Route::get('/baskets', [BasketController::class, 'index']);
+    Route::post('/basket', [BasketController::class,'store']);
 });

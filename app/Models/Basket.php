@@ -15,7 +15,7 @@ class Basket extends Model
         'order_id',
         'user_id',
         'quantity',
-        'status'
+        'status',
     ];
 
     public function store(): BelongsTo
