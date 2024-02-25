@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AccessController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PriceController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TypeController;
@@ -70,4 +71,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Product routes
     Route::get('/products', [StoreController::class, 'index']);
     Route::post('/product', [StoreController::class, 'store']);
+
+    // Customer routes
+    Route::get('/customers', [CustomerController::class, 'index']);
+    Route::post('/customer', [CustomerController::class,'store']);
 });
