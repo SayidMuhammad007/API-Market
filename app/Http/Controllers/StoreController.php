@@ -16,7 +16,7 @@ class StoreController extends Controller
      */
     public function index()
     {
-        return response()->json(Store::with(['category', 'branch', 'price'])->paginate(20));
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(20));
     }
 
     /**
@@ -48,7 +48,10 @@ class StoreController extends Controller
                 'message' => 'Price not found'
             ], 400);
         }
-        Store::create(array_merge($request->all(), ['barcode' => $branch->barcode]));
+        $item = Store::create(array_merge($request->all(), ['barcode' => $branch->barcode]));
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $item->addMediaFromRequest('image')->toMediaCollection('images');
+        }
         $branch->update(['barcode' => ++$branch->barcode]);
 
         return response()->json([
