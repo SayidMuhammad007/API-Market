@@ -18,7 +18,7 @@ class PriceFactory extends Factory
     {   
         $names = ['So`m', 'Dollar'];
         return [
-            'name' => $this->faker->randomElement($names),
+            'name' => $this->faker->unique()->randomElement($names),
         ];
     }
 }
