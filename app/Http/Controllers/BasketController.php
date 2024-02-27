@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FinishOrderRequest;
 use App\Http\Requests\StoreBasketRequest;
+use App\Http\Requests\UpdateBasketRequest;
 use App\Models\Basket;
+use App\Models\Order;
 use App\Models\Store;
 use Illuminate\Http\Request;
 
@@ -14,7 +17,7 @@ class BasketController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json(Basket::with('basket_price')->where('user_id', auth()->user()->id)->where('status', 0)->get());
     }
 
     /**
@@ -67,17 +70,48 @@ class BasketController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Basket $basket)
+    public function save(FinishOrderRequest $request,Basket $basket)
     {
-        //
+        $user = auth()->user();
+        $order = Order::create([
+            'branch_id' => $user->branch_id,
+            'user_id' => $user->id,
+            'customer_id' => $request->customer_id,
+            'status' => 1,
+        ]);
+        foreach ($request->prices as $price){
+            $order->order_price->create([
+                'order_id' => $order->id,
+                'price_id' => $price['price_id'],
+                'type_id' => $price['type_id'],
+                'price' => $price['price'],
+            ]);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Basket $basket)
+    public function update(UpdateBasketRequest $request)
     {
-        //
+        $user = auth()->user();
+
+        $basket = Basket::with('basket_price')->where('user_id', $user->id)
+            ->where('status', 0)
+            ->where('store_id', $request->product_id)
+            ->first();
+
+        $product = Store::find($request->product_id);
+
+        $basket->basket_price()->updateOrCreate([], [
+            'agreed_price' => $request->agreed_price,
+            'price_sell' => $product->price_sell,
+            'price_come' => $product->price_come,
+            'total' => $request->agreed_price * $request->quantity,
+            'price_id' => $request->price_id,
+        ]);
+
+        return response()->json($user->baskets()->with('basket_price')->where('status', 0)->get());
     }
 
     /**
@@ -85,6 +119,7 @@ class BasketController extends Controller
      */
     public function destroy(Basket $basket)
     {
-        //
+        $basket->delete();
+        return response()->json(Basket::with('basket_price')->where('user_id', auth()->user()->id)->where('status', 0)->get());
     }
 }

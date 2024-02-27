@@ -75,9 +75,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Customer routes
     Route::get('/customers', [CustomerController::class, 'index']);
-    Route::post('/customer', [CustomerController::class,'store']);
+    Route::post('/customer', [CustomerController::class, 'store']);
 
     // Basket routes
     Route::get('/baskets', [BasketController::class, 'index']);
-    Route::post('/basket', [BasketController::class,'store']);
+    Route::post('/basket', [BasketController::class, 'store']);
+    Route::post('/basket/update', [BasketController::class, 'update']);
+    Route::post('/basket/delete/{basket}', [BasketController::class, 'destroy']);
 });
