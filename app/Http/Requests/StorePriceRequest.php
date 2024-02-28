@@ -25,7 +25,7 @@ class StorePriceRequest extends FormRequest
     {
         return [
             'name' => 'required',
-            'value' => 'required|float'
+            'value' => 'required'
         ];
     }
     public function failedValidation(Validator $validator)
