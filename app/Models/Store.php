@@ -21,6 +21,7 @@ class Store extends Model implements HasMedia
         'barcode',
         'price_come',
         'price_sell',
+        'price_wholesale',
         'quantity',
         'danger_count',
         'status'
