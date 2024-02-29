@@ -85,7 +85,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid login credentials',
-            ], 401);
+            ], 400);
         } else {
             $token = $user->createToken('auth_token')->plainTextToken;
             return response()->json([
