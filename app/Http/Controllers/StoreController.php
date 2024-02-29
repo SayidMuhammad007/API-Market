@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteStoreRequest;
 use App\Http\Requests\StoreRequest;
 use App\Models\Branch;
 use App\Models\Category;
@@ -133,9 +134,11 @@ class StoreController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Store $store)
+    public function destroy(DeleteStoreRequest $request)
     {
-        $store->delete();
+        foreach ($request->stores as $store) {
+            Store::where('id', $store)->delete();
+        }
         return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(1000));
     }
 }
