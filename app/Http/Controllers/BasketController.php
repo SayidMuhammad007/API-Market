@@ -37,7 +37,9 @@ class BasketController extends Controller
         if ($request->quantity > $product->quantity) {
             return response()->json(['error' => 'Insufficient stock. Available quantity: ' . $product->quantity], 400);
         }
-
+        // decrement product quantity
+        $product->quantity -= $request->quantity;
+        $product->save();
         // check basket product exists
         $basket = Basket::where('user_id', auth()->user()->id)->where('store_id', $request->product_id)->where('status', 0)->first();
         if ($basket) {
@@ -54,7 +56,7 @@ class BasketController extends Controller
         }
 
         // create basket price
-        $sell_price =  $request->agreed_price ?? $request->agreed_price::$product->price_sell;
+        $sell_price = $request->agreed_price ?? $product->price_sell;
         $basket->basket_price()->create([
             'agreed_price' => $sell_price,
             'price_sell' => $product->price_sell,
@@ -63,14 +65,14 @@ class BasketController extends Controller
             'price_id' => $product->price_id,
         ]);
 
-        $basket = Basket::with('basket_price')->where('user_id', auth()->user()->id)->where('status', 0)->get();
+        $basket = Basket::with(['basket_price', 'store'])->where('user_id', auth()->user()->id)->where('status', 0)->get();
         return response()->json($basket, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function save(FinishOrderRequest $request,Basket $basket)
+    public function save(FinishOrderRequest $request, Basket $basket)
     {
         $user = auth()->user();
         $order = Order::create([
@@ -79,7 +81,7 @@ class BasketController extends Controller
             'customer_id' => $request->customer_id,
             'status' => 1,
         ]);
-        foreach ($request->prices as $price){
+        foreach ($request->prices as $price) {
             $order->order_price->create([
                 'order_id' => $order->id,
                 'price_id' => $price['price_id'],
@@ -101,7 +103,19 @@ class BasketController extends Controller
             ->where('store_id', $request->product_id)
             ->first();
 
+        if (!$basket) {
+            return response()->json(['error' => 'Basket not found'], 404);
+        }
+
         $product = Store::find($request->product_id);
+
+        // decrement product quantity
+        $product->quantity = $product->quantity + $basket->quantity - $request->quantity;
+        $product->save();
+
+        // update basket
+        $basket->quantity = $request->quantity;
+        $basket->save();
 
         $basket->basket_price()->updateOrCreate([], [
             'agreed_price' => $request->agreed_price,
@@ -111,15 +125,29 @@ class BasketController extends Controller
             'price_id' => $request->price_id,
         ]);
 
-        return response()->json($user->baskets()->with('basket_price')->where('status', 0)->get());
+        return response()->json($user->baskets()->with(['basket_price', 'store'])->where('status', 0)->get());
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Basket $basket)
     {
+        // Check if basket exists
+        if (!$basket) {
+            return response()->json(['error' => 'Basket not found'], 404);
+        }
+
+        // Delete the basket
         $basket->delete();
-        return response()->json(Basket::with('basket_price')->where('user_id', auth()->user()->id)->where('status', 0)->get());
+
+        // Return updated list of baskets
+        $baskets = Basket::with(['basket_price', 'store'])
+            ->where('user_id', auth()->user()->id)
+            ->where('status', 0)
+            ->get();
+
+        return response()->json($baskets);
     }
 }
