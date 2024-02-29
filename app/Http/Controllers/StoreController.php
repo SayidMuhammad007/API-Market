@@ -135,6 +135,7 @@ class StoreController extends Controller
      */
     public function destroy(Store $store)
     {
-        //
+        $store->delete();
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(1000));
     }
 }
