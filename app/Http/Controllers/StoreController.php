@@ -17,7 +17,7 @@ class StoreController extends Controller
      */
     public function index()
     {
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(20));
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(1000));
     }
 
     /**
@@ -55,7 +55,7 @@ class StoreController extends Controller
         }
         $branch->update(['barcode' => ++$branch->barcode]);
 
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(20), 201);
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(1000), 201);
     }
 
     /**
@@ -122,7 +122,7 @@ class StoreController extends Controller
             $item->addMediaFromRequest('image')->toMediaCollection('images');
         }
 
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(20));
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(1000));
     }
 
     /**
@@ -133,6 +133,6 @@ class StoreController extends Controller
         foreach ($request->stores as $store) {
             Store::where('id', $store)->delete();
         }
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(20));
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(1000));
     }
 }
