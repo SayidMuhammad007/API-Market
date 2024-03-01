@@ -15,10 +15,25 @@ class StoreController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(1000));
+        $query = Store::query()->with(['media', 'category', 'branch', 'price']);
+
+        // Check if search query parameter is provided
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            // Add conditions to search in relevant columns
+            $query->where('name', 'like', "%$searchTerm%")
+                ->orWhere('barcode', 'like', "%$searchTerm%");
+            // Add more conditions as needed for other columns
+        }
+
+        // Paginate the results
+        $stores = $query->paginate(1000);
+
+        return response()->json($stores);
     }
+
 
     /**
      * Store a newly created resource in storage.
