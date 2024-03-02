@@ -22,11 +22,7 @@ class PriceController extends Controller
     public function store(StorePriceRequest $request)
     {
         Price::create($request->all());
-        $msg = [
-            'status' => 'success',
-            'msg' => 'Price added successfully'
-        ];
-        return response()->json($msg, 201);
+        return response()->json(Price::paginate(20));
     }
 
     /**
@@ -42,7 +38,8 @@ class PriceController extends Controller
      */
     public function update(Request $request, Price $price)
     {
-        //
+        $price->update($request->all());
+        return response()->json(Price::paginate(20));
     }
 
     /**

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class FinishOrderRequest extends FormRequest
+class DeleteBasketRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,7 @@ class FinishOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'price_id' => 'required|integer',
-            'prices' => 'required|array',
-            'type_id' => 'required|integer',
+            'store_ids' => 'required|array',
         ];
     }
 }

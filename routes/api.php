@@ -68,6 +68,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Price routes
     Route::get('/prices', [PriceController::class, 'index']);
     Route::post('/price', [PriceController::class, 'store']);
+    Route::post('/price/{price}', [PriceController::class, 'update']);
 
     // Product routes
     Route::get('/products', [StoreController::class, 'index']);
@@ -82,6 +83,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Basket routes
     Route::get('/baskets', [BasketController::class, 'index']);
     Route::post('/basket', [BasketController::class, 'store']);
+    Route::post('/basket/save', [BasketController::class, 'save']);
     Route::post('/basket/update', [BasketController::class, 'update']);
     Route::post('/basket/delete/{basket}', [BasketController::class, 'destroy']);
 });

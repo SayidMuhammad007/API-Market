@@ -15,11 +15,17 @@ class BasketPrice extends Model
         'total',
         'price_come',
         'price_sell',
-        'price_id'
+        'price_id',
+        'store_id',
     ];
 
     public function basket(): BelongsTo
     {
         return $this->belongsTo(Basket::class);
+    }
+
+    public function price(): BelongsTo
+    {
+        return $this->belongsTo(Price::class);
     }
 }

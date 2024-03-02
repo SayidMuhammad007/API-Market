@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteBasketRequest;
 use App\Http\Requests\FinishOrderRequest;
 use App\Http\Requests\StoreBasketRequest;
 use App\Http\Requests\UpdateBasketRequest;
 use App\Models\Basket;
 use App\Models\Order;
+use App\Models\Price;
 use App\Models\Store;
 use Illuminate\Http\Request;
 
@@ -17,7 +19,7 @@ class BasketController extends Controller
      */
     public function index()
     {
-        return response()->json(Basket::with('basket_price')->where('user_id', auth()->user()->id)->where('status', 0)->get());
+        return response()->json(Basket::with(['basket_price', 'store'])->where('user_id', auth()->user()->id)->where('status', 0)->get());
     }
 
     /**
@@ -51,19 +53,30 @@ class BasketController extends Controller
                 'store_id' => $request->product_id,
                 'quantity' => $request->quantity,
                 'user_id' => auth()->user()->id,
-                'status' => 0
+                'status' => 0,
             ]);
         }
 
         // create basket price
-        $sell_price = $request->agreed_price ?? $product->price_sell;
-        $basket->basket_price()->create([
-            'agreed_price' => $sell_price,
-            'price_sell' => $product->price_sell,
-            'price_come' => $product->price_come,
-            'total' => $sell_price * $request->quantity,
-            'price_id' => $product->price_id,
-        ]);
+        $sell_price = $request->input('agreed_price', $product->price_sell);
+        $data = $basket->basket_price()->where('store_id', $request->product_id)->first();
+
+        if ($data) {
+            $data->update([
+                'agreed_price' => $sell_price,
+                'total' => $sell_price * $basket->quantity,
+            ]);
+        } else {
+            $basket->basket_price()->create([
+                'agreed_price' => $sell_price,
+                'price_sell' => $product->price_sell,
+                'price_come' => $product->price_come,
+                'total' => $sell_price * $basket->quantity,
+                'price_id' => $product->price_id,
+                'store_id' => $request->product_id,
+            ]);
+        }
+
 
         $basket = Basket::with(['basket_price', 'store'])->where('user_id', auth()->user()->id)->where('status', 0)->get();
         return response()->json($basket, 201);
@@ -72,9 +85,31 @@ class BasketController extends Controller
     /**
      * Display the specified resource.
      */
-    public function save(FinishOrderRequest $request, Basket $basket)
+    public function save(FinishOrderRequest $request)
     {
         $user = auth()->user();
+
+        $dollar = (float) Price::where('name', 'Dollar')->value('value');
+
+        $total_sum = Basket::where('user_id', $user->id)
+            ->with('basket_price')
+            ->get()
+            ->flatMap(function ($basket) {
+                return $basket->basket_price->where('price_id', 1)->sum('total');
+            })
+            ->sum();
+
+        $total_dollar = Basket::where('user_id', $user->id)
+            ->with('basket_price')
+            ->get()
+            ->flatMap(function ($basket) {
+                return $basket->basket_price->where('price_id', 2)->sum('total');
+            })
+            ->sum();
+        $in_uzs = $dollar * $total_dollar + $total_sum;
+        $in_dollar = $total_sum / $dollar + $total_dollar;
+        return response()->json([$in_uzs, $in_dollar, $total_sum],);
+
         $order = Order::create([
             'branch_id' => $user->branch_id,
             'user_id' => $user->id,
@@ -132,15 +167,14 @@ class BasketController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Basket $basket)
+    public function destroy(DeleteBasketRequest $request)
     {
-        // Check if basket exists
-        if (!$basket) {
-            return response()->json(['error' => 'Basket not found'], 404);
+        foreach ($request->store_ids as $store_id) {
+            // Check if basket exists
+            $basket = Basket::where('store_id', $store_id)->first();
+            // Delete the basket
+            $basket->delete();
         }
-
-        // Delete the basket
-        $basket->delete();
 
         // Return updated list of baskets
         $baskets = Basket::with(['basket_price', 'store'])
