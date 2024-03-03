@@ -24,7 +24,8 @@ class DatabaseSeeder extends Seeder
         \App\Models\User::factory()->create([
             'name' => 'admin',
             'password' => Hash::make('secret'),
-            'phone' => '+998907758032'
+            'phone' => '+998907758032',
+            'branch_id' => 1,
         ]);
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateBasketRequest;
 use App\Models\Basket;
 use App\Models\BasketPrice;
 use App\Models\Order;
+use App\Models\OrderPrice;
 use App\Models\Price;
 use App\Models\Store;
 use App\Models\Type;
@@ -128,17 +129,22 @@ class BasketController extends Controller
         if (!$type) {
             return response()->json(['error' => 'Type not found'], 404);
         }
-        // create new order 
-        $order = Order::create([
-            'branch_id' => $user->branch_id,
-            'user_id' => $user->id,
-            'customer_id' => $request->customer_id ?? null,
-            'status' => 1,
-        ]);
+        $basket = $user->baskets->where('status', 0)->first();
+        if (!$basket->order_id) {
+            // create new order 
+            $order = Order::create([
+                'branch_id' => $user->branch_id,
+                'user_id' => $user->id,
+                'customer_id' => $request->customer_id ?? null,
+                'status' => 1,
+            ]);
+        } else {
+            $order = $basket->order;
+        }
         // check price
         $status = false;
         if ($request->price_id == 1) {
-            if ($request->price > $inUzs) {
+            if ((float)$request->price > (float)$inUzs) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Insufficient UZS'
@@ -162,15 +168,27 @@ class BasketController extends Controller
         ]);
         // add price
         if ($status) {
-            $order->order_price->create([
+            $orderPrice = new OrderPrice([
                 'order_id' => $order->id,
                 'price_id' => $request->price_id,
                 'type_id' => $request->type_id,
                 'price' => $request->price,
             ]);
+
+            // Save the new order price
+            $order->order_price()->save($orderPrice);
         }
 
-        // ret
+
+        list($inUzs, $inDollar) = $this->calculate($user);
+        $basket = $user->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 0)->get();
+        return response()->json([
+            'basket' => $basket,
+            'calc' => [
+                'uzs' => $inUzs,
+                'usd' => $inDollar
+            ]
+        ], 201);
     }
 
     /**
@@ -268,16 +286,23 @@ class BasketController extends Controller
         $totalSum = $basketPrices->where('price_id', 1)->sum('total');
         $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
 
-        $basket = $user->baskets()->where('status', 0);
+        // Retrieve the user's order with status 1
+        $order = Order::where('status', 1)->where('user_id', $user->id)->first();
+
+        // Check if $order is null
+        if ($order) {
+            // Retrieve the sum of prices from the order
+            $payed_sum = $order->order_price->where('price_id', 1)->sum('price') ?? 0;
+            $payed_dollar = $order->order_price->where('price_id', 2)->sum('price') ?? 0;
+        } else {
+            // If no order with status 1 is found, set payed_sum and payed_dollar to 0
+            $payed_sum = 0;
+            $payed_dollar = 0;
+        }
 
         // Calculate values in UZS and USD
-        $inUzs = $dollar * $totalDollar + $totalSum;
-        $inDollar = (int)($totalSum / $dollar + $totalDollar);
-
-        // Format values with number_format
-        $inUzsFormatted = number_format($inUzs, 0, '.', ' ');
-        $inDollarFormatted = number_format($inDollar, 0, '.', ' ');
-
-        return [$inUzsFormatted, $inDollarFormatted];
+        $inUzs = $dollar * $totalDollar + $totalSum - $payed_sum;
+        $inDollar = (int)($totalSum / $dollar + $totalDollar) - $payed_dollar;
+        return [$inUzs, $inDollar];
     }
 }

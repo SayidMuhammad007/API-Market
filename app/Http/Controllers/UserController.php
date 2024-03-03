@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\Access;
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return response()->json(User::with('userAccess.access')->paginate(20));
+        return response()->json(User::with(['userAccess.access', 'branch'])->paginate(20));
     }
 
 
@@ -49,10 +50,20 @@ class UserController extends Controller
             $access_ids[] = $access_id;
         }
 
+        // Validate branch_id
+        $branch = Branch::find($request->branch_id);
+        if (!$branch) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid branch_id',
+            ], 400);
+        }
+
         // Create a new user
         $newUser = User::create([
             'name' => $request->name,
             'phone' => $request->phone,
+            'branch' => $request->branch_id,
             'password' => Hash::make($request->password),
         ]);
 
@@ -62,7 +73,6 @@ class UserController extends Controller
                 'access_id' => $access_id,
             ]);
         }
-
         // Generate an authentication token for the new user
         $token = $newUser->createToken('auth_token')->plainTextToken;
 
@@ -134,12 +144,20 @@ class UserController extends Controller
                 $accessIds[] = $accessId;
             }
         }
-
+        // Validate branch_id
+        $branch = Branch::find($request->branch_id);
+        if (!$branch) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid branch_id',
+            ], 400);
+        }
 
         // Update user details
         $user->update([
             'name' => $request->has('name') ? $request->name : $user->name,
             'phone' => $request->has('phone') ? $request->phone : $user->phone,
+            'branch_id' => $request->has('branch_id') ? $request->branch_id : $user->branch_id,
             'password' => $request->has('password') ? Hash::make($request->password) : $user->password,
         ]);
 
@@ -162,7 +180,7 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'User updated successfully',
-            'user' => $user->load('userAccess.access'),
+            'user' => $user->load(['userAccess.access', 'branch']),
         ], 200);
     }
 

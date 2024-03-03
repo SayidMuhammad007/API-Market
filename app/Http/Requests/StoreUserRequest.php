@@ -28,6 +28,7 @@ class StoreUserRequest extends FormRequest
             'phone' => 'required|min:5',
             'password' => 'required|min:6',
             'access_id' => 'required',
+            'branch_id' => 'required|integer',
         ];
     }
 
