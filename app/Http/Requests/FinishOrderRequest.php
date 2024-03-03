@@ -23,7 +23,7 @@ class FinishOrderRequest extends FormRequest
     {
         return [
             'price_id' => 'required|integer',
-            'prices' => 'required|array',
+            'price' => 'required',
             'type_id' => 'required|integer',
         ];
     }

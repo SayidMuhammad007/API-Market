@@ -11,6 +11,7 @@ use App\Models\BasketPrice;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\Store;
+use App\Models\Type;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,7 +22,15 @@ class BasketController extends Controller
      */
     public function index()
     {
-        return response()->json(Basket::with(['basket_price', 'store'])->where('user_id', auth()->user()->id)->where('status', 0)->get());
+        list($inUzs, $inDollar) = $this->calculate($user);
+        $basket = Basket::with(['basket_price', 'store'])->where('user_id', auth()->user()->id)->where('status', 0)->get();
+        return response()->json([
+            'basket' => $basket,
+            'calc' => [
+                'uzs' => $inUzs,
+                'usd' => $inDollar
+            ]
+        ], 201);
     }
 
     /**
@@ -99,43 +108,45 @@ class BasketController extends Controller
     public function save(FinishOrderRequest $request)
     {
         $user = auth()->user();
-        $dollar = (float) Price::where('name', 'Dollar')->value('value');
-
-        $basketPrices = BasketPrice::whereIn('basket_id', function ($query) use ($user) {
-            $query->select('id')
-                ->from('baskets')
-                ->where('user_id', $user->id);
-        })->get();
-
-        $totalSum = $basketPrices->where('price_id', 1)->sum('total');
-        $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
-
-        $inUzs = $dollar * $totalDollar + $totalSum;
-        $inDollar = (int)($totalSum / $dollar + $totalDollar);
-
-        $inUzsFormatted = number_format($inUzs, 0, '.', ' ');
-        $inDollarFormatted = number_format($inDollar, 0, '.', ' ');
-
-        return response()->json([$inUzsFormatted, $inDollarFormatted]);
-
-
-
-
-
+        list($inUzs, $inDollar) = $this->calculate($user);
+        $type = Type::where('id', $request->type_id)->first();
         $order = Order::create([
             'branch_id' => $user->branch_id,
             'user_id' => $user->id,
-            'customer_id' => $request->customer_id,
+            'customer_id' => $request->customer_id ?? null,
             'status' => 1,
         ]);
-        foreach ($request->prices as $price) {
+        $status = false;
+        if ($request->price_id == 1) {
+            if ($request->price > $inUzs) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient UZS'
+                ], 400);
+            } else {
+                $status = true;
+            }
+        } else if ($request->price_id == 2) {
+            if ($request->price > $inDollar) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient Dollar'
+                ], 400);
+            } else {
+                $status = true;
+            }
+        }
+
+        if ($status) {
             $order->order_price->create([
                 'order_id' => $order->id,
-                'price_id' => $price['price_id'],
-                'type_id' => $price['type_id'],
-                'price' => $price['price'],
+                'price_id' => $request->price_id,
+                'type_id' => $request->type_id,
+                'price' => $request->price,
             ]);
         }
+
+        ret
     }
 
     /**
