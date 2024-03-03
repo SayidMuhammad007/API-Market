@@ -6,6 +6,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ExpenceController;
 use App\Http\Controllers\PriceController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TypeController;
@@ -86,4 +87,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/basket/save', [BasketController::class, 'save']);
     Route::post('/basket/update', [BasketController::class, 'update']);
     Route::post('/basket/delete', [BasketController::class, 'destroy']);
+
+    // Expences routes
+    Route::get('/expenses', [ExpenceController::class, 'index']);
+    Route::post('/expense', [ExpenceController::class, 'store']);
+    Route::post('/expense/{expence}', [ExpenceController::class, 'update']);
+    Route::delete('/expenses/{expence}', [ExpenceController::class, 'destroy']);
 });
