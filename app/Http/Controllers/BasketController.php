@@ -28,7 +28,7 @@ class BasketController extends Controller
         list($inUzs, $inDollar) = $this->calculate($user);
 
         // Get the basket data
-        $basket = Basket::with(['basket_price', 'store', 'basket_price.price.name'])
+        $basket = Basket::with(['basket_price', 'store', 'basket_price.price["name"]'])
             ->where('user_id', $user->id)
             ->where('status', 0)
             ->get();
