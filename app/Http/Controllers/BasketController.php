@@ -22,8 +22,18 @@ class BasketController extends Controller
      */
     public function index()
     {
+        $user = auth()->user(); // Retrieve the authenticated user
+    
+        // Calculate the values
         list($inUzs, $inDollar) = $this->calculate($user);
-        $basket = Basket::with(['basket_price', 'store'])->where('user_id', auth()->user()->id)->where('status', 0)->get();
+    
+        // Get the basket data
+        $basket = Basket::with(['basket_price', 'store'])
+            ->where('user_id', $user->id)
+            ->where('status', 0)
+            ->get();
+    
+        // Return the response with the basket data and calculated values
         return response()->json([
             'basket' => $basket,
             'calc' => [
@@ -32,6 +42,7 @@ class BasketController extends Controller
             ]
         ], 201);
     }
+    
 
     /**
      * Store a newly created resource in storage.
