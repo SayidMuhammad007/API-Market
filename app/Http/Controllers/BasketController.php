@@ -23,16 +23,16 @@ class BasketController extends Controller
     public function index()
     {
         $user = auth()->user(); // Retrieve the authenticated user
-    
+
         // Calculate the values
         list($inUzs, $inDollar) = $this->calculate($user);
-    
+
         // Get the basket data
         $basket = Basket::with(['basket_price', 'store'])
             ->where('user_id', $user->id)
             ->where('status', 0)
             ->get();
-    
+
         // Return the response with the basket data and calculated values
         return response()->json([
             'basket' => $basket,
@@ -42,7 +42,7 @@ class BasketController extends Controller
             ]
         ], 201);
     }
-    
+
 
     /**
      * Store a newly created resource in storage.
@@ -234,20 +234,32 @@ class BasketController extends Controller
 
     public function calculate($user)
     {
+        // Retrieve the value of Dollar from the database
         $dollar = (float) Price::where('name', 'Dollar')->value('value');
 
+        // Check if $dollar is zero or not set correctly
+        if ($dollar === 0) {
+            // Handle the case where $dollar is zero or not set correctly
+            // For example, you can return an error response or set a default value
+            return [0, 0];
+        }
+
+        // Retrieve basket prices for the user
         $basketPrices = BasketPrice::whereIn('basket_id', function ($query) use ($user) {
             $query->select('id')
                 ->from('baskets')
                 ->where('user_id', $user->id);
         })->get();
 
+        // Calculate total sum and total dollar from basket prices
         $totalSum = $basketPrices->where('price_id', 1)->sum('total');
         $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
 
+        // Calculate values in UZS and USD
         $inUzs = $dollar * $totalDollar + $totalSum;
         $inDollar = (int)($totalSum / $dollar + $totalDollar);
 
+        // Format values with number_format
         $inUzsFormatted = number_format($inUzs, 0, '.', ' ');
         $inDollarFormatted = number_format($inDollar, 0, '.', ' ');
 
