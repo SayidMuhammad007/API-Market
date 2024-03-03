@@ -40,7 +40,7 @@ class BasketController extends Controller
                 'uzs' => $inUzs,
                 'usd' => $inDollar
             ]
-        ], 201);
+        ], 200);
     }
 
 
@@ -118,15 +118,24 @@ class BasketController extends Controller
      */
     public function save(FinishOrderRequest $request)
     {
+        // get authenticated user
         $user = auth()->user();
+        // get calculated price
         list($inUzs, $inDollar) = $this->calculate($user);
+        // check type
         $type = Type::where('id', $request->type_id)->first();
+        // if not found return error message
+        if (!$type) {
+            return response()->json(['error' => 'Type not found'], 404);
+        }
+        // create new order 
         $order = Order::create([
             'branch_id' => $user->branch_id,
             'user_id' => $user->id,
             'customer_id' => $request->customer_id ?? null,
             'status' => 1,
         ]);
+        // check price
         $status = false;
         if ($request->price_id == 1) {
             if ($request->price > $inUzs) {
@@ -147,7 +156,11 @@ class BasketController extends Controller
                 $status = true;
             }
         }
-
+        // update basket
+        $user->baskets()->where('status', '0')->update([
+            'order_id' => $order->id,
+        ]);
+        // add price
         if ($status) {
             $order->order_price->create([
                 'order_id' => $order->id,
@@ -241,8 +254,6 @@ class BasketController extends Controller
 
         // Check if $dollar is zero or not set correctly
         if ($dollar === 0) {
-            // Handle the case where $dollar is zero or not set correctly
-            // For example, you can return an error response or set a default value
             return [0, 0];
         }
 
@@ -256,6 +267,8 @@ class BasketController extends Controller
         // Calculate total sum and total dollar from basket prices
         $totalSum = $basketPrices->where('price_id', 1)->sum('total');
         $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
+
+        $basket = $user->baskets()->where('status', 0);
 
         // Calculate values in UZS and USD
         $inUzs = $dollar * $totalDollar + $totalSum;
