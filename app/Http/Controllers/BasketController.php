@@ -116,49 +116,49 @@ class BasketController extends Controller
     /**
      * Display the specified resource.
      */
-    public function save(FinishOrderRequest $request)
-    {
-        $user = auth()->user();
-        list($inUzs, $inDollar) = $this->calculate($user);
-        $type = Type::where('id', $request->type_id)->first();
-        $order = Order::create([
-            'branch_id' => $user->branch_id,
-            'user_id' => $user->id,
-            'customer_id' => $request->customer_id ?? null,
-            'status' => 1,
-        ]);
-        $status = false;
-        if ($request->price_id == 1) {
-            if ($request->price > $inUzs) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Insufficient UZS'
-                ], 400);
-            } else {
-                $status = true;
-            }
-        } else if ($request->price_id == 2) {
-            if ($request->price > $inDollar) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Insufficient Dollar'
-                ], 400);
-            } else {
-                $status = true;
-            }
-        }
+    // public function save(FinishOrderRequest $request)
+    // {
+    //     $user = auth()->user();
+    //     list($inUzs, $inDollar) = $this->calculate($user);
+    //     $type = Type::where('id', $request->type_id)->first();
+    //     $order = Order::create([
+    //         'branch_id' => $user->branch_id,
+    //         'user_id' => $user->id,
+    //         'customer_id' => $request->customer_id ?? null,
+    //         'status' => 1,
+    //     ]);
+    //     $status = false;
+    //     if ($request->price_id == 1) {
+    //         if ($request->price > $inUzs) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Insufficient UZS'
+    //             ], 400);
+    //         } else {
+    //             $status = true;
+    //         }
+    //     } else if ($request->price_id == 2) {
+    //         if ($request->price > $inDollar) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Insufficient Dollar'
+    //             ], 400);
+    //         } else {
+    //             $status = true;
+    //         }
+    //     }
 
-        if ($status) {
-            $order->order_price->create([
-                'order_id' => $order->id,
-                'price_id' => $request->price_id,
-                'type_id' => $request->type_id,
-                'price' => $request->price,
-            ]);
-        }
+    //     if ($status) {
+    //         $order->order_price->create([
+    //             'order_id' => $order->id,
+    //             'price_id' => $request->price_id,
+    //             'type_id' => $request->type_id,
+    //             'price' => $request->price,
+    //         ]);
+    //     }
 
-        ret
-    }
+    //     ret
+    // }
 
     /**
      * Update the specified resource in storage.
