@@ -39,7 +39,7 @@ class BasketController extends Controller
             'basket' => $basket,
             'calc' => [
                 'uzs' => $inUzs,
-                'usd' => $inDollar
+                'usd' => (float)$inDollar
             ]
         ], 200);
     }
@@ -109,7 +109,7 @@ class BasketController extends Controller
             'basket' => $basket,
             'calc' => [
                 'uzs' => $inUzs,
-                'usd' => $inDollar
+                'usd' => (float)$inDollar
             ]
         ], 201);
     }
@@ -183,8 +183,8 @@ class BasketController extends Controller
         return response()->json([
             'basket' => $basket,
             'calc' => [
-                'uzs' => $inUzs,
-                'usd' => $inDollar
+                'uzs' => $inUzs < 0 ? 0 : $inUzs,
+                'usd' => $inDollar < 0 ? 0 : (float)$inDollar
             ]
         ], 201);
     }
@@ -229,7 +229,7 @@ class BasketController extends Controller
             'basket' => $basket,
             'calc' => [
                 'uzs' => $inUzs,
-                'usd' => $inDollar
+                'usd' => (float)$inDollar
             ]
         ], 201);
     }
@@ -259,7 +259,7 @@ class BasketController extends Controller
             'basket' => $basket,
             'calc' => [
                 'uzs' => $inUzs,
-                'usd' => $inDollar
+                'usd' => (float)$inDollar
             ]
         ], 201);
     }
