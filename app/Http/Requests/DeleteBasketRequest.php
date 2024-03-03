@@ -22,7 +22,7 @@ class DeleteBasketRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'store_ids' => 'required|array',
+            'basket_ids' => 'required|array',
         ];
     }
 }

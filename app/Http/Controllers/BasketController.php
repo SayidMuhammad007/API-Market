@@ -210,11 +210,13 @@ class BasketController extends Controller
      */
     public function destroy(DeleteBasketRequest $request)
     {
-        foreach ($request->store_ids as $store_id) {
+        foreach ($request->basket_ids as $basket_id) {
             // Check if basket exists
-            $basket = Basket::where('store_id', $store_id)->first();
+            $basket = Basket::where('id', $basket_id)->first();
             // Delete the basket
-            $basket->delete();
+            if ($basket) {
+                $basket->delete();
+            }
         }
         $user = auth()->user();
         // Return updated list of baskets

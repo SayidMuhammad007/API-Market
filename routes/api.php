@@ -85,5 +85,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/basket', [BasketController::class, 'store']);
     Route::post('/basket/save', [BasketController::class, 'save']);
     Route::post('/basket/update', [BasketController::class, 'update']);
-    Route::post('/basket/delete/{basket}', [BasketController::class, 'destroy']);
+    Route::post('/basket/delete', [BasketController::class, 'destroy']);
 });
