@@ -119,69 +119,67 @@ class BasketController extends Controller
      */
     public function save(FinishOrderRequest $request)
     {
-        // get authenticated user
+        // Get authenticated user
         $user = auth()->user();
-        // get calculated price
+
+        // Get calculated price
         list($inUzs, $inDollar) = $this->calculate($user);
-        // check type
-        $type = Type::where('id', $request->type_id)->first();
-        // if not found return error message
+
+        // Check if type exists
+        $type = Type::find($request->type_id);
         if (!$type) {
             return response()->json(['error' => 'Type not found'], 404);
         }
-        $basket = $user->baskets->where('status', 0)->first();
-        if (!$basket->order_id) {
-            // create new order 
-            $order = Order::create([
-                'branch_id' => $user->branch_id,
-                'user_id' => $user->id,
-                'customer_id' => $request->customer_id ?? null,
-                'status' => 1,
-            ]);
-        } else {
-            $order = $basket->order;
-        }
-        // check price
-        $status = false;
-        if ($request->price_id == 1) {
-            if ((float)$request->price > (float)$inUzs) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Insufficient UZS'
-                ], 400);
-            } else {
-                $status = true;
-            }
-        } else if ($request->price_id == 2) {
-            if ($request->price > $inDollar) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Insufficient Dollar'
-                ], 400);
-            } else {
-                $status = true;
-            }
-        }
-        // update basket
-        $user->baskets()->where('status', '0')->update([
-            'order_id' => $order->id,
+
+        // Get user's open basket
+        $basket = $user->baskets()->where('status', 0)->first();
+
+        // Check if basket has an associated order, if not, create a new order
+        $order = $basket->order ?? Order::create([
+            'branch_id' => $user->branch_id,
+            'user_id' => $user->id,
+            'customer_id' => $request->customer_id ?? null,
+            'status' => 1,
         ]);
-        // add price
-        if ($status) {
-            $orderPrice = new OrderPrice([
-                'order_id' => $order->id,
-                'price_id' => $request->price_id,
-                'type_id' => $request->type_id,
-                'price' => $request->price,
-            ]);
 
-            // Save the new order price
-            $order->order_price()->save($orderPrice);
+        // Check price and update basket and order accordingly
+        if ($request->price_id == 1 && (float)$request->price > (float)$inUzs) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient UZS'
+            ], 400);
         }
 
+        if ($request->price_id == 2 && $request->price > $inDollar) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient Dollar'
+            ], 400);
+        }
 
+        // Update basket order_id
+        $basket->update(['order_id' => $order->id]);
+
+        // Add order price
+        $order->order_price()->create([
+            'price_id' => $request->price_id,
+            'type_id' => $request->type_id,
+            'price' => $request->price,
+        ]);
+
+        // Recalculate after adding order price
         list($inUzs, $inDollar) = $this->calculate($user);
+
+        // If both UZS and USD are zero, update basket and order status
+        if ($inUzs <= 0 && $inDollar <= 0) {
+            $user->baskets()->where('status', '0')->update(['status' => 1]);
+            $order->update(['status' => 0]);
+        }
+
+        // Get updated basket data
         $basket = $user->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 0)->get();
+
+        // Return response
         return response()->json([
             'basket' => $basket,
             'calc' => [
@@ -190,6 +188,7 @@ class BasketController extends Controller
             ]
         ], 201);
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -301,8 +300,10 @@ class BasketController extends Controller
         }
 
         // Calculate values in UZS and USD
-        $inUzs = $dollar * $totalDollar + $totalSum - $payed_sum;
-        $inDollar = (int)($totalSum / $dollar + $totalDollar) - $payed_dollar;
-        return [$inUzs, $inDollar];
+        $inUzs = $dollar * ($totalDollar - $payed_dollar) + $totalSum - $payed_sum;
+        $inDollar = (($totalSum - $payed_sum) / $dollar + $totalDollar) - $payed_dollar;
+        $inDollarFormatted = number_format($inDollar, 2, '.', '');
+
+        return [$inUzs, $inDollarFormatted];
     }
 }
