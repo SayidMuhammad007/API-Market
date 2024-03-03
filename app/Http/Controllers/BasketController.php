@@ -28,7 +28,7 @@ class BasketController extends Controller
         list($inUzs, $inDollar) = $this->calculate($user);
 
         // Get the basket data
-        $basket = Basket::with(['basket_price', 'store'])
+        $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
             ->where('user_id', $user->id)
             ->where('status', 0)
             ->get();
@@ -103,7 +103,7 @@ class BasketController extends Controller
 
 
         list($inUzs, $inDollar) = $this->calculate($user);
-        $basket = Basket::with(['basket_price', 'store'])->where('user_id', auth()->user()->id)->where('status', 0)->get();
+        $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])->where('user_id', auth()->user()->id)->where('status', 0)->get();
         return response()->json([
             'basket' => $basket,
             'calc' => [
@@ -207,7 +207,7 @@ class BasketController extends Controller
             'price_id' => $request->price_id,
         ]);
         list($inUzs, $inDollar) = $this->calculate($user);
-        $basket = $user->baskets()->with(['basket_price', 'store'])->where('status', 0)->get();
+        $basket = $user->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 0)->get();
         return response()->json([
             'basket' => $basket,
             'calc' => [
@@ -234,7 +234,7 @@ class BasketController extends Controller
         $user = auth()->user();
         // Return updated list of baskets
         list($inUzs, $inDollar) = $this->calculate($user);
-        $basket = Basket::with(['basket_price', 'store'])
+        $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
             ->where('user_id', $user->id)
             ->where('status', 0)
             ->get();
