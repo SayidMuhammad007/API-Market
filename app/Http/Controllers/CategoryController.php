@@ -12,9 +12,20 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Category::with('branch')->paginate(20));
+        $query = Category::query()->with('branch');
+
+        // Check if search query parameter is provided
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where('name', 'like', "%$searchTerm%");
+        }
+
+        // Paginate the results
+        $categories = $query->paginate(1000);
+
+        return response()->json($categories);
     }
 
     /**

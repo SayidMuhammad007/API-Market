@@ -7,10 +7,12 @@ use App\Http\Requests\FinishOrderRequest;
 use App\Http\Requests\StoreBasketRequest;
 use App\Http\Requests\UpdateBasketRequest;
 use App\Models\Basket;
+use App\Models\BasketPrice;
 use App\Models\Order;
 use App\Models\Price;
 use App\Models\Store;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BasketController extends Controller
 {
@@ -29,7 +31,8 @@ class BasketController extends Controller
     {
         // get product
         $product = Store::where('id', $request->product_id)->first();
-
+        // get authenticated user
+        $user = auth()->user();
         // check product exists
         if (!$product) {
             return response()->json(['error' => 'Product not found'], 404);
@@ -43,7 +46,7 @@ class BasketController extends Controller
         $product->quantity -= $request->quantity;
         $product->save();
         // check basket product exists
-        $basket = Basket::where('user_id', auth()->user()->id)->where('store_id', $request->product_id)->where('status', 0)->first();
+        $basket = Basket::where('user_id', $user->id)->where('store_id', $request->product_id)->where('status', 0)->first();
         if ($basket) {
             $basket->quantity += $request->quantity;
             $basket->save();
@@ -52,7 +55,7 @@ class BasketController extends Controller
             $basket = Basket::create([
                 'store_id' => $request->product_id,
                 'quantity' => $request->quantity,
-                'user_id' => auth()->user()->id,
+                'user_id' => $user->id,
                 'status' => 0,
             ]);
         }
@@ -78,8 +81,16 @@ class BasketController extends Controller
         }
 
 
+
+        list($inUzs, $inDollar) = $this->calculate($user);
         $basket = Basket::with(['basket_price', 'store'])->where('user_id', auth()->user()->id)->where('status', 0)->get();
-        return response()->json($basket, 201);
+        return response()->json([
+            'basket' => $basket,
+            'calc' => [
+                'uzs' => $inUzs,
+                'usd' => $inDollar
+            ]
+        ], 201);
     }
 
     /**
@@ -88,27 +99,28 @@ class BasketController extends Controller
     public function save(FinishOrderRequest $request)
     {
         $user = auth()->user();
-
         $dollar = (float) Price::where('name', 'Dollar')->value('value');
 
-        $total_sum = Basket::where('user_id', $user->id)
-            ->with('basket_price')
-            ->get()
-            ->flatMap(function ($basket) {
-                return $basket->basket_price->where('price_id', 1)->sum('total');
-            })
-            ->sum();
+        $basketPrices = BasketPrice::whereIn('basket_id', function ($query) use ($user) {
+            $query->select('id')
+                ->from('baskets')
+                ->where('user_id', $user->id);
+        })->get();
 
-        $total_dollar = Basket::where('user_id', $user->id)
-            ->with('basket_price')
-            ->get()
-            ->flatMap(function ($basket) {
-                return $basket->basket_price->where('price_id', 2)->sum('total');
-            })
-            ->sum();
-        $in_uzs = $dollar * $total_dollar + $total_sum;
-        $in_dollar = $total_sum / $dollar + $total_dollar;
-        return response()->json([$in_uzs, $in_dollar, $total_sum],);
+        $totalSum = $basketPrices->where('price_id', 1)->sum('total');
+        $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
+
+        $inUzs = $dollar * $totalDollar + $totalSum;
+        $inDollar = (int)($totalSum / $dollar + $totalDollar);
+
+        $inUzsFormatted = number_format($inUzs, 0, '.', ' ');
+        $inDollarFormatted = number_format($inDollar, 0, '.', ' ');
+
+        return response()->json([$inUzsFormatted, $inDollarFormatted]);
+
+
+
+
 
         $order = Order::create([
             'branch_id' => $user->branch_id,
@@ -159,8 +171,15 @@ class BasketController extends Controller
             'total' => $request->agreed_price * $request->quantity,
             'price_id' => $request->price_id,
         ]);
-
-        return response()->json($user->baskets()->with(['basket_price', 'store'])->where('status', 0)->get());
+        list($inUzs, $inDollar) = $this->calculate($user);
+        $basket = $user->baskets()->with(['basket_price', 'store'])->where('status', 0)->get();
+        return response()->json([
+            'basket' => $basket,
+            'calc' => [
+                'uzs' => $inUzs,
+                'usd' => $inDollar
+            ]
+        ], 201);
     }
 
 
@@ -175,13 +194,41 @@ class BasketController extends Controller
             // Delete the basket
             $basket->delete();
         }
-
+        $user = auth()->user();
         // Return updated list of baskets
-        $baskets = Basket::with(['basket_price', 'store'])
-            ->where('user_id', auth()->user()->id)
+        list($inUzs, $inDollar) = $this->calculate($user);
+        $basket = Basket::with(['basket_price', 'store'])
+            ->where('user_id', $user->id)
             ->where('status', 0)
             ->get();
+        return response()->json([
+            'basket' => $basket,
+            'calc' => [
+                'uzs' => $inUzs,
+                'usd' => $inDollar
+            ]
+        ], 201);
+    }
 
-        return response()->json($baskets);
+    public function calculate($user)
+    {
+        $dollar = (float) Price::where('name', 'Dollar')->value('value');
+
+        $basketPrices = BasketPrice::whereIn('basket_id', function ($query) use ($user) {
+            $query->select('id')
+                ->from('baskets')
+                ->where('user_id', $user->id);
+        })->get();
+
+        $totalSum = $basketPrices->where('price_id', 1)->sum('total');
+        $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
+
+        $inUzs = $dollar * $totalDollar + $totalSum;
+        $inDollar = (int)($totalSum / $dollar + $totalDollar);
+
+        $inUzsFormatted = number_format($inUzs, 0, '.', ' ');
+        $inDollarFormatted = number_format($inDollar, 0, '.', ' ');
+
+        return [$inUzsFormatted, $inDollarFormatted];
     }
 }
