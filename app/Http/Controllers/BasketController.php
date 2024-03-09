@@ -131,6 +131,9 @@ class BasketController extends Controller
         if (!$type) {
             return response()->json(['error' => 'Type not found'], 404);
         }
+        if ($type->id == 4 && !$request->customer_id) {
+            return response()->json(['error' => 'Customer not found'], 404);
+        }
 
         // Get user's open basket
         $basket = $user->baskets()->where('status', 0)->first();
@@ -167,6 +170,9 @@ class BasketController extends Controller
             'type_id' => $request->type_id,
             'price' => $request->price,
         ]);
+
+        // add price to customer debt
+
 
         // Recalculate after adding order price
         list($inUzs, $inDollar) = $this->calculate($user);

@@ -67,6 +67,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Type routes
     Route::get('/types', [TypeController::class, 'index']);
     Route::post('/type', [TypeController::class, 'store']);
+    Route::post('/type/{type}', [TypeController::class, 'update']);
+    Route::delete('/type/{type}', [TypeController::class, 'destroy']);
 
     // Price routes
     Route::get('/prices', [PriceController::class, 'index']);

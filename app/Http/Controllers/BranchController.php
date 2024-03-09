@@ -89,7 +89,7 @@ class BranchController extends Controller
             }
 
             // check branch
-            if ($branch->id == $product['branch_id']) {
+            if ($branch->id == $store->branch_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You cannot transfer to the same branch'

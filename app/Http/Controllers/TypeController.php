@@ -22,11 +22,7 @@ class TypeController extends Controller
     public function store(StoreTypeRequest $request)
     {
         Type::create($request->all());
-        $msg = [
-            'success' => true,
-            'message' => 'Types created successfully'
-        ];
-        return response()->json($msg, 201);
+        return response()->json(Type::paginate(20));
     }
 
     /**
@@ -42,7 +38,8 @@ class TypeController extends Controller
      */
     public function update(Request $request, Type $type)
     {
-        //
+        $type->update($request->all());
+        return response()->json(Type::paginate(20));
     }
 
     /**
@@ -50,6 +47,14 @@ class TypeController extends Controller
      */
     public function destroy(Type $type)
     {
-        //
+        if (!$type) {
+            $msg = [
+                'success' => false,
+                'message' => 'Type not found'
+            ];
+            return response()->json($msg, 404);
+        }
+        $type->delete();
+        return response()->json(Type::paginate(20));
     }
 }
