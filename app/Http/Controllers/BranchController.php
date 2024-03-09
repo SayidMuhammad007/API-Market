@@ -88,6 +88,14 @@ class BranchController extends Controller
                 ], 400);
             }
 
+            // check branch
+            if ($branch->id == $product['branch_id']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You cannot transfer to the same branch'
+                ], 400);
+            }
+
             $store->update([
                 'quantity' => $store->quantity - $product['quantity']
             ]);

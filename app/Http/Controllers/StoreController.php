@@ -25,11 +25,15 @@ class StoreController extends Controller
             // Add conditions to search in relevant columns
             $query->where('name', 'like', "%$searchTerm%")
                 ->orWhere('barcode', 'like', "%$searchTerm%");
-            // Add more conditions as needed for other columns
+
+            // Add condition to search by category name
+            $query->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
+                $categoryQuery->where('name', 'like', "%$searchTerm%");
+            });
         }
 
         // Paginate the results
-        $stores = $query->paginate(20);
+        $stores = $query->paginate(10);
 
         return response()->json($stores);
     }
