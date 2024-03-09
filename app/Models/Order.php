@@ -37,4 +37,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderPrice::class);
     }
+
+    public function baskets(): HasMany
+    {
+        return $this->hasMany(Basket::class);
+    }
 }

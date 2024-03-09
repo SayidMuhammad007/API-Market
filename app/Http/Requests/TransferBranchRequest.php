@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreBasketRequest extends FormRequest
+class TransferBranchRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +22,7 @@ class StoreBasketRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'products' => 'required|array',
+            'products' => 'required|array'
         ];
     }
 }

@@ -25,7 +25,7 @@ class UpdateBasketRequest extends FormRequest
             'product_id' => 'required|integer',
             'price_id' => 'required|integer',
             'agreed_price' => 'required',
-            'quantity' => 'required|integer',
+            'quantity' => 'required',
         ];
     }
 }

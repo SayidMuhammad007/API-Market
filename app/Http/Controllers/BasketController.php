@@ -50,57 +50,58 @@ class BasketController extends Controller
      */
     public function store(StoreBasketRequest $request)
     {
-        // get product
-        $product = Store::where('id', $request->product_id)->first();
-        // get authenticated user
-        $user = auth()->user();
-        // check product exists
-        if (!$product) {
-            return response()->json(['error' => 'Product not found'], 404);
-        }
+        foreach ($request->products as $item) {
+            // get product
+            $product = Store::where('id', $item['product_id'])->first();
+            // get authenticated user
+            $user = auth()->user();
+            // check product exists
+            if (!$product) {
+                return response()->json(['error' => 'Product not found'], 404);
+            }
 
-        // check quantity
-        if ($request->quantity > $product->quantity) {
-            return response()->json(['error' => 'Insufficient stock. Available quantity: ' . $product->quantity], 400);
-        }
-        // decrement product quantity
-        $product->quantity -= $request->quantity;
-        $product->save();
-        // check basket product exists
-        $basket = Basket::where('user_id', $user->id)->where('store_id', $request->product_id)->where('status', 0)->first();
-        if ($basket) {
-            $basket->quantity += $request->quantity;
-            $basket->save();
-        } else {
-            // create basket
-            $basket = Basket::create([
-                'store_id' => $request->product_id,
-                'quantity' => $request->quantity,
-                'user_id' => $user->id,
-                'status' => 0,
-            ]);
-        }
+            // check quantity
+            if ($item['quantity'] > $product['quantity']) {
+                return response()->json(['error' => 'Insufficient stock. Available quantity: ' . $product->quantity], 400);
+            }
+            // decrement product quantity
+            $product->quantity -= $item['quantity'];
+            $product->save();
+            // check basket product exists
+            $basket = Basket::where('user_id', $user->id)->where('store_id', $item['product_id'])->where('status', 0)->first();
+            if ($basket) {
+                $basket->quantity += $item['quantity'];
+                $basket->save();
+            } else {
+                // create basket
+                $basket = Basket::create([
+                    'store_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'user_id' => $user->id,
+                    'status' => 0,
+                ]);
+            }
 
-        // create basket price
-        $sell_price = $request->input('agreed_price', $product->price_sell);
-        $data = $basket->basket_price()->where('store_id', $request->product_id)->first();
+            // create basket price
+            $sell_price = $item['agreed_price'] ?? $product->price_sell;
+            $data = $basket->basket_price()->where('store_id', $item['product_id'])->first();
 
-        if ($data) {
-            $data->update([
-                'agreed_price' => $sell_price,
-                'total' => $sell_price * $basket->quantity,
-            ]);
-        } else {
-            $basket->basket_price()->create([
-                'agreed_price' => $sell_price,
-                'price_sell' => $product->price_sell,
-                'price_come' => $product->price_come,
-                'total' => $sell_price * $basket->quantity,
-                'price_id' => $product->price_id,
-                'store_id' => $request->product_id,
-            ]);
+            if ($data) {
+                $data->update([
+                    'agreed_price' => $sell_price,
+                    'total' => $sell_price * $basket->quantity,
+                ]);
+            } else {
+                $basket->basket_price()->create([
+                    'agreed_price' => $sell_price,
+                    'price_sell' => $product->price_sell,
+                    'price_come' => $product->price_come,
+                    'total' => $sell_price * $basket->quantity,
+                    'price_id' => $product->price_id,
+                    'store_id' => $item['product_id'],
+                ]);
+            }
         }
-
 
 
         list($inUzs, $inDollar) = $this->calculate($user);
