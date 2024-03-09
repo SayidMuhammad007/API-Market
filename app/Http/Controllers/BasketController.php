@@ -8,6 +8,8 @@ use App\Http\Requests\StoreBasketRequest;
 use App\Http\Requests\UpdateBasketRequest;
 use App\Models\Basket;
 use App\Models\BasketPrice;
+use App\Models\Customer;
+use App\Models\CustomerLog;
 use App\Models\Order;
 use App\Models\OrderPrice;
 use App\Models\Price;
@@ -131,8 +133,11 @@ class BasketController extends Controller
         if (!$type) {
             return response()->json(['error' => 'Type not found'], 404);
         }
-        if ($type->id == 4 && !$request->customer_id) {
-            return response()->json(['error' => 'Customer not found'], 404);
+        if ($type->id == 4) {
+            $customer = Customer::find($request->customer_id);
+            if (!$customer) {
+                return response()->json(['error' => 'Customer not found'], 404);
+            }
         }
 
         // Get user's open basket
@@ -172,8 +177,16 @@ class BasketController extends Controller
         ]);
 
         // add price to customer debt
-
-
+        if ($request->type_id == 4) {
+            CustomerLog::create([
+                'branch_id' => $order->branch_id,
+                'customer_id' => $request->customer_id,
+                'type_id' => $request->type_id,
+                'price_id' => $request->price_id,
+                'price' => $request->price,
+                'comment' => $request->comment ?? "",
+            ]);
+        }
         // Recalculate after adding order price
         list($inUzs, $inDollar) = $this->calculate($user);
 

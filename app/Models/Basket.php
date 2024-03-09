@@ -37,4 +37,9 @@ class Basket extends Model
     {
         return $this->hasMany(BasketPrice::class);
     }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

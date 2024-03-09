@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('customer_logs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('type_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('price_id')->constrained()->cascadeOnDelete();
+            $table->string('price')->nullable();
+            $table->text('comment')->nullable();
             $table->timestamps();
         });
     }
