@@ -12,7 +12,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        return response()->json(auth()->user()->orders()->orderBy('id', 'desc')->paginate(20));
+        return response()->json(auth()->user()->orders()->with(['customer', 'user'])->orderBy('id', 'desc')->paginate(20));
     }
 
     /**
@@ -20,6 +20,6 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        return response()->json($order->with('baskets')->orderBy('id', 'asc')->paginate(20));
+        return response()->json($order->with(['customer', 'user', 'baskets'])->orderBy('id', 'asc')->paginate(20));
     }
 }
