@@ -265,21 +265,28 @@ class BasketController extends Controller
      */
     public function destroy(DeleteBasketRequest $request)
     {
-        foreach ($request->basket_ids as $basket_id) {
-            // Check if basket exists
-            $basket = Basket::where('id', $basket_id)->first();
+        $basketIds = $request->basket_ids;
+
+        // Fetch all baskets with given IDs
+        $baskets = Basket::whereIn('id', $basketIds)->get();
+
+        foreach ($baskets as $basket) {
+            // Update the corresponding store's quantity
+            $basket->store->increment('quantity', $basket->quantity);
             // Delete the basket
-            if ($basket) {
-                $basket->delete();
-            }
+            $basket->delete();
         }
+
+        // Calculate totals
         $user = auth()->user();
-        // Return updated list of baskets
         list($inUzs, $inDollar) = $this->calculate($user);
+
+        // Return updated list of baskets and totals
         $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
             ->where('user_id', $user->id)
             ->where('status', 0)
             ->get();
+
         return response()->json([
             'basket' => $basket,
             'calc' => [
@@ -288,6 +295,7 @@ class BasketController extends Controller
             ]
         ], 201);
     }
+
 
     public function calculate($user)
     {
