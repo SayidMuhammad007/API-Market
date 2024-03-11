@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -20,6 +21,10 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        return response()->json($order->with(['customer', 'user', 'baskets', 'baskets.store', 'baskets.basket_price'])->orderBy('id', 'asc')->paginate(20));
+        $total = DB::select('select SUM(total)as total from basket_prices where basket_id = (SELECT id FROM baskets WHERE order_id=?)', [$order->id]);
+        return response()->json([
+            'data' => $order->with(['customer', 'user', 'baskets', 'baskets.store', 'baskets.basket_price'])->orderBy('id', 'asc')->get(),
+            'total' => $total[0]->total,
+        ]);
     }
 }

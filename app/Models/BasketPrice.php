@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class BasketPrice extends Model
 {
@@ -19,13 +19,18 @@ class BasketPrice extends Model
         'store_id',
     ];
 
-    public function basket(): BelongsTo
+    public function basket()
     {
         return $this->belongsTo(Basket::class);
     }
 
-    public function price(): BelongsTo
+    public function price()
     {
         return $this->belongsTo(Price::class);
+    }
+
+    public static function sumTotal()
+    {
+        return self::sum('total');
     }
 }
