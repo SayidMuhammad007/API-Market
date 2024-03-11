@@ -20,6 +20,6 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        return response()->json($order->with(['customer', 'user', 'baskets'])->orderBy('id', 'asc')->paginate(20));
+        return response()->json($order->with(['customer', 'user', 'baskets', 'baskets.store', 'baskets.basket_price'])->orderBy('id', 'asc')->paginate(20));
     }
 }
