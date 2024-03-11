@@ -209,7 +209,7 @@ class BasketController extends Controller
             ], 201);
         } else {
             return response()->json([
-                'basket' => $order->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 1)->get(),
+                'status' => true,
             ], 201);
         }
     }
