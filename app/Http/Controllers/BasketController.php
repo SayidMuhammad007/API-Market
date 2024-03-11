@@ -26,7 +26,6 @@ class BasketController extends Controller
     public function index()
     {
         $user = auth()->user(); // Retrieve the authenticated user
-
         // Calculate the values
         list($inUzs, $inDollar) = $this->calculate($user);
 
@@ -142,15 +141,6 @@ class BasketController extends Controller
 
         // Get user's open basket
         $basket = $user->baskets()->where('status', 0)->first();
-
-        // Check if basket has an associated order, if not, create a new order
-        $order = $basket->order ?? Order::create([
-            'branch_id' => $user->branch_id,
-            'user_id' => $user->id,
-            'customer_id' => $request->customer_id ?? null,
-            'status' => 1,
-        ]);
-
         // Check price and update basket and order accordingly
         if ($request->price_id == 1 && (float)$request->price > (float)$inUzs) {
             return response()->json([
@@ -165,6 +155,15 @@ class BasketController extends Controller
                 'message' => 'Insufficient Dollar'
             ], 400);
         }
+        // Check if basket has an associated order, if not, create a new order
+        $order = $basket->order ?? Order::create([
+            'branch_id' => $user->branch_id,
+            'user_id' => $user->id,
+            'customer_id' => $request->customer_id ?? null,
+            'status' => 1,
+        ]);
+
+
 
         // Update basket order_id
         $basket->update(['order_id' => $order->id]);
@@ -197,16 +196,22 @@ class BasketController extends Controller
         }
 
         // Get updated basket data
-        $basket = $user->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 0)->get();
+        $basket = $order->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 0)->get();
 
         // Return response
-        return response()->json([
-            'basket' => $basket,
-            'calc' => [
-                'uzs' => $inUzs < 0 ? 0 : $inUzs,
-                'usd' => $inDollar < 0 ? 0 : (float)$inDollar
-            ]
-        ], 201);
+        if ($basket->count() > 0) {
+            return response()->json([
+                'basket' => $basket,
+                'calc' => [
+                    'uzs' => $inUzs < 0 ? 0 : $inUzs,
+                    'usd' => $inDollar < 0 ? 0 : (float)$inDollar
+                ]
+            ], 201);
+        } else {
+            return response()->json([
+                'basket' => $order->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 1)->get(),
+            ], 201);
+        }
     }
 
 
@@ -298,25 +303,27 @@ class BasketController extends Controller
         $basketPrices = BasketPrice::whereIn('basket_id', function ($query) use ($user) {
             $query->select('id')
                 ->from('baskets')
+                ->where('status', 0)
                 ->where('user_id', $user->id);
         })->get();
-
         // Calculate total sum and total dollar from basket prices
         $totalSum = $basketPrices->where('price_id', 1)->sum('total');
         $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
 
         // Retrieve the user's order with status 1
-        $order = Order::where('status', 1)->where('user_id', $user->id)->first();
+        $order = Order::where('status', 1)
+            ->where('user_id', $user->id)
+            ->with('order_price')
+            ->first();
 
-        // Check if $order is null
+        // Initialize payed_sum and payed_dollar
+        $payed_sum = 0;
+        $payed_dollar = 0;
+
         if ($order) {
             // Retrieve the sum of prices from the order
-            $payed_sum = $order->order_price->where('price_id', 1)->sum('price') ?? 0;
-            $payed_dollar = $order->order_price->where('price_id', 2)->sum('price') ?? 0;
-        } else {
-            // If no order with status 1 is found, set payed_sum and payed_dollar to 0
-            $payed_sum = 0;
-            $payed_dollar = 0;
+            $payed_sum = $order->order_price->where('price_id', 1)->sum('price');
+            $payed_dollar = $order->order_price->where('price_id', 2)->sum('price');
         }
 
         // Calculate values in UZS and USD
