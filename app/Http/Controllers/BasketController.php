@@ -132,7 +132,7 @@ class BasketController extends Controller
         if (!$type) {
             return response()->json(['error' => 'Type not found'], 404);
         }
-        if ($type->id == 4) {
+        if ($request->customer_id) {
             $customer = Customer::find($request->customer_id);
             if (!$customer) {
                 return response()->json(['error' => 'Customer not found'], 404);
