@@ -27,7 +27,7 @@ class BasketController extends Controller
     {
         $user = auth()->user(); // Retrieve the authenticated user
         // Calculate the values
-        list($inUzs, $inDollar) = $this->calculate($user);
+        list($inUzs, $inDollar, $dollar) = $this->calculate($user);
 
         // Get the basket data
         $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
@@ -40,7 +40,8 @@ class BasketController extends Controller
             'basket' => $basket,
             'calc' => [
                 'uzs' => $inUzs,
-                'usd' => (float)$inDollar
+                'usd' => (float)$inDollar,
+                'dollar' => (float)$dollar
             ]
         ], 200);
     }
@@ -105,13 +106,14 @@ class BasketController extends Controller
         }
 
 
-        list($inUzs, $inDollar) = $this->calculate($user);
+        list($inUzs, $inDollar, $dollar) = $this->calculate($user);
         $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])->where('user_id', auth()->user()->id)->where('status', 0)->get();
         return response()->json([
             'basket' => $basket,
             'calc' => [
                 'uzs' => $inUzs,
-                'usd' => (float)$inDollar
+                'usd' => (float)$inDollar,
+                'dollar' => (float)$dollar
             ]
         ], 201);
     }
@@ -125,7 +127,7 @@ class BasketController extends Controller
         $user = auth()->user();
 
         // Get calculated price
-        list($inUzs, $inDollar) = $this->calculate($user);
+        list($inUzs, $inDollar, $dollar) = $this->calculate($user);
 
         // Check if type exists
         $type = Type::find($request->type_id);
@@ -204,7 +206,8 @@ class BasketController extends Controller
                 'basket' => $basket,
                 'calc' => [
                     'uzs' => $inUzs < 0 ? 0 : $inUzs,
-                    'usd' => $inDollar < 0 ? 0 : (float)$inDollar
+                    'usd' => $inDollar < 0 ? 0 : (float)$inDollar,
+                    'dollar' => (float)$dollar,
                 ]
             ], 201);
         } else {
@@ -248,13 +251,14 @@ class BasketController extends Controller
             'total' => $request->agreed_price * $request->quantity,
             'price_id' => $request->price_id,
         ]);
-        list($inUzs, $inDollar) = $this->calculate($user);
+        list($inUzs, $inDollar, $dollar) = $this->calculate($user);
         $basket = $user->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 0)->get();
         return response()->json([
             'basket' => $basket,
             'calc' => [
                 'uzs' => $inUzs,
-                'usd' => (float)$inDollar
+                'usd' => (float)$inDollar,
+                'dollar' => (float)$dollar
             ]
         ], 201);
     }
@@ -279,7 +283,7 @@ class BasketController extends Controller
 
         // Calculate totals
         $user = auth()->user();
-        list($inUzs, $inDollar) = $this->calculate($user);
+        list($inUzs, $inDollar, $dollar) = $this->calculate($user);
 
         // Return updated list of baskets and totals
         $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
@@ -291,7 +295,8 @@ class BasketController extends Controller
             'basket' => $basket,
             'calc' => [
                 'uzs' => $inUzs,
-                'usd' => (float)$inDollar
+                'usd' => (float)$inDollar,
+                'dollar' => (float)$dollar
             ]
         ], 201);
     }
@@ -300,7 +305,7 @@ class BasketController extends Controller
     public function calculate($user)
     {
         // Retrieve the value of Dollar from the database
-        $dollar = (float) Price::where('name', 'Dollar')->value('value');
+        $dollar = (float) Price::where('id', 2)->value('value');
 
         // Check if $dollar is zero or not set correctly
         if ($dollar === 0) {
@@ -339,6 +344,6 @@ class BasketController extends Controller
         $inDollar = (($totalSum - $payed_sum) / $dollar + $totalDollar) - $payed_dollar;
         $inDollarFormatted = number_format($inDollar, 2, '.', '');
 
-        return [$inUzs, $inDollarFormatted];
+        return [$inUzs, $inDollarFormatted, $dollar];
     }
 }
