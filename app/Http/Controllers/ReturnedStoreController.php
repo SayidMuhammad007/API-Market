@@ -25,11 +25,11 @@ class ReturnedStoreController extends Controller
     public function store(StoreReturnRequest $request)
     {
         foreach ($request->data as $item) {
-            $order = Order::where('order_id', $item['order_id'])->where('status', 1)->first();
+            $order = Order::where('id', $item['order_id'])->where('status', 0)->first();
             if (!$order) {
                 return response()->json(['error' => 'Order not found'], 404);
             }
-            $basket = Basket::where('user_id', auth()->user()->id)->where('order_id', $item['order_id'])->where('store_id', $item['store_id'])->where('status', 1)->first();
+            $basket = Basket::where('order_id', $item['order_id'])->where('store_id', $item['store_id'])->where('status', 1)->first();
             if (!$basket) {
                 return response()->json(['error' => 'Basket not found'], 404);
             }
