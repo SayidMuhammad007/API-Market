@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreReturnRequest;
 use App\Models\Basket;
+use App\Models\Order;
 use App\Models\ReturnedStore;
 use App\Models\Store;
 use Illuminate\Http\Request;
@@ -24,10 +25,15 @@ class ReturnedStoreController extends Controller
     public function store(StoreReturnRequest $request)
     {
         foreach ($request->data as $item) {
-            $basket = Basket::where('user_id', auth()->user()->id)->where('store_id', $item['store_id'])->where('status', 1)->first();
+            $order = Order::where('order_id', $item['order_id'])->where('status', 1)->first();
+            if (!$order) {
+                return response()->json(['error' => 'Order not found'], 404);
+            }
+            $basket = Basket::where('user_id', auth()->user()->id)->where('order_id', $item['order_id'])->where('store_id', $item['store_id'])->where('status', 1)->first();
             if (!$basket) {
                 return response()->json(['error' => 'Basket not found'], 404);
             }
+
             $store = Store::where('id', $item['store_id'])->first();
             if (!$store) {
                 return response()->json([
