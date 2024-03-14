@@ -23,7 +23,7 @@ class OrderController extends Controller
     {
         $total = DB::select('select SUM(total)as total from basket_prices where basket_id = (SELECT id FROM baskets WHERE order_id=?)', [$order->id]);
         return response()->json([
-            'data' => $order->with(['customer', 'user', 'baskets', 'baskets.store', 'baskets.basket_price'])->orderBy('id', 'asc')->get(),
+            'data' => $order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category','baskets.basket_price']),
             'total' => $total[0]->total,
         ]);
     }
