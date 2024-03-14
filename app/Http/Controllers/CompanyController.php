@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PayCompanyRequest;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Models\Branch;
 use App\Models\Company;
+use App\Models\Price;
+use App\Models\Type;
 use Illuminate\Http\Request;
 
 class CompanyController extends Controller
@@ -12,11 +15,19 @@ class CompanyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Company::with('branch')->paginate(20));
-    }
+        $user = auth()->user();
+        $query = Company::where('branch_id', $user->id);
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where('name', 'like', "%$$searchTerm%");
+        }
 
+        // Paginate the results
+        $customers = $query->paginate(10);
+        return response()->json($customers);
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -41,10 +52,9 @@ class CompanyController extends Controller
         // Create the company
         Company::create($request->all());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Company created successfully'
-        ], 201);
+        $user = auth()->user();
+        $customers = Company::where('branch_id', $user->id)->paginate(10);
+        return response()->json($customers);
     }
 
 
@@ -53,7 +63,14 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
-        //
+        $data = $company->companyLog()->with(['branch', 'type', 'company'])->where('branch_id', auth()->user()->branch_id)->get();
+        $debts = $company->companyLog()->where('type_id', 4)->sum('price');
+        $payments = $company->companyLog()->where('type_id', "!=", 4)->sum('price');
+        return response()->json([
+            'data' => $data,
+            'debts' => $debts,
+            'payments' => $payments
+        ]);
     }
 
     /**
@@ -69,6 +86,52 @@ class CompanyController extends Controller
      */
     public function destroy(Company $company)
     {
-        //
+        $debts = $company->companyLog()->where('type_id', '!=', 4)->first();
+        if ($debts) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Company has debts'
+            ]);
+        }
+        $company->delete();
+        $user = auth()->user();
+        $companies = Company::where('branch_id', $user->id)->paginate(10);
+        return response()->json($companies);
+    }
+
+    public function pay(PayCompanyRequest $request, Company $company)
+    {
+        // check type
+        $type = Type::where('id', $request->type_id)->first();
+        if (!$type) {
+            return response()->json([
+                'error' => 'Type not found'
+            ]);
+        }
+
+        // check price
+        $price = Price::where('id', $request->price_id)->first();
+        if (!$price) {
+            return response()->json([
+                'error' => 'Price not found'
+            ]);
+        }
+
+        $company->companyLog()->create([
+            'type_id' => $request->type_id,
+            'price_id' => $request->price_id,
+            'comment' => $request->comment,
+            'price' => $request->price,
+            'branch_id' => $company->branch_id,
+        ]);
+
+        $data = $company->companyLog()->with(['branch', 'type', 'company'])->where('branch_id', auth()->user()->branch_id)->get();
+        $debts = $company->companyLog()->where('type_id', 4)->sum('price');
+        $payments = $company->companyLog()->where('type_id', "!=", 4)->sum('price');
+        return response()->json([
+            'data' => $data,
+            'debts' => $debts,
+            'payments' => $payments
+        ]);
     }
 }

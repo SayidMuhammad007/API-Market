@@ -23,7 +23,7 @@ class CategoryController extends Controller
         }
 
         // Paginate the results
-        $categories = $query->paginate(1000);
+        $categories = $query->paginate(20);
 
         return response()->json($categories);
     }

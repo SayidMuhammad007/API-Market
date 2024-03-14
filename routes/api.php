@@ -63,7 +63,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Company routes
     Route::get('/companies', [CompanyController::class, 'index']);
+    Route::get('/company/{company}', [CompanyController::class, 'show']);
+    Route::post('/company/{company}', [CompanyController::class, 'pay']);
     Route::post('/company', [CompanyController::class, 'store']);
+    Route::delete('/company/{company}', [CompanyController::class, 'destroy']);
 
     // Type routes
     Route::get('/types', [TypeController::class, 'index']);
@@ -84,7 +87,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Customer routes
     Route::get('/customers', [CustomerController::class, 'index']);
+    Route::get('/customer/{customer}', [CustomerController::class, 'show']);
     Route::post('/customer', [CustomerController::class, 'store']);
+    Route::delete('/customer/{customer}', [CustomerController::class, 'destroy']);
+    Route::post('/customer/{customer}', [CustomerController::class, 'pay']);
 
     // Basket routes
     Route::get('/baskets', [BasketController::class, 'index']);

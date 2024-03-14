@@ -15,11 +15,19 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(User::with(['userAccess.access', 'branch'])->paginate(20));
-    }
+        $user = auth()->user();
+        $query = User::with(['userAccess.access', 'branch'])->where('branch_id', $user->id);
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where('name', 'like', "%$$searchTerm%");
+        }
 
+        // Paginate the results
+        $users = $query->paginate(10);
+        return response()->json($users);
+    }
 
     /**
      * Store a newly created resource in storage.
