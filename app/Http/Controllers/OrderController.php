@@ -21,10 +21,14 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $total = DB::select('select SUM(total)as total from basket_prices where basket_id = (SELECT id FROM baskets WHERE order_id=? LIMIT 1)', [$order->id]);
+        $sum = DB::select('select SUM(total)as total from basket_prices where price_id = 1 AND basket_id = (SELECT id FROM baskets WHERE order_id=? LIMIT 1)', [$order->id]);
+        $dollar = DB::select('select SUM(total)as total from basket_prices where price_id = 2 AND basket_id = (SELECT id FROM baskets WHERE order_id=? LIMIT 1)', [$order->id]);
         return response()->json([
-            'data' => $order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category','baskets.basket_price']),
-            'total' => $total[0]->total,
+            'data' => $order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']),
+            'total' => [
+                'dollar' => $dollar[0]->total,
+                'sum' => $sum[0]->total ?? 0
+            ],
         ]);
     }
 }
