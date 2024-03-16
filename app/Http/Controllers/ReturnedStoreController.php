@@ -55,8 +55,21 @@ class ReturnedStoreController extends Controller
             $store->update([
                 'quantity' => $item['quantity'] + $store->quantity,
             ]);
+            if ($basket->quantity <= $item['quantity']) {
+                $basket->delete();
+            } else {
+                $newQuantity = $basket->quantity - $item['quantity'];
+                $basket->update([
+                    'quantity' => $newQuantity,
+                ]);
+            }
+            if (!$order->baskets) {
+                $order->update([
+                    'status' => 5,
+                ]);
+            }
         }
-        return response()->json(ReturnedStore::paginate(20));
+        return response()->json($basket);
     }
 
     /**
