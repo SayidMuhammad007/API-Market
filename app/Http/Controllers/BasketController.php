@@ -143,6 +143,7 @@ class BasketController extends Controller
 
         // Get user's open basket
         $basket = $user->baskets()->where('status', 0)->first();
+
         // Check price and update basket and order accordingly
         if ($request->price_id == 1 && (float)$request->price > (float)$inUzs) {
             return response()->json([
@@ -164,11 +165,11 @@ class BasketController extends Controller
             'customer_id' => $request->customer_id ?? null,
             'status' => 1,
         ]);
-
-
-
+        $basket = $user->baskets()->where('status', 0)->get();
+        foreach ($basket as $item) {
+            $item->update(['order_id' => $order->id]);
+        }
         // Update basket order_id
-        $basket->update(['order_id' => $order->id]);
 
         // Add order price
         $order->order_price()->create([
