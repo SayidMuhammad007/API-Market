@@ -21,13 +21,33 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $sum = DB::select('select SUM(total)as total from basket_prices where price_id = 1 AND basket_id = (SELECT id FROM baskets WHERE order_id=? LIMIT 1)', [$order->id]);
-        $dollar = DB::select('select SUM(total)as total from basket_prices where price_id = 2 AND basket_id = (SELECT id FROM baskets WHERE order_id=? LIMIT 1)', [$order->id]);
+        // Fetch the sum of total prices for price_id 1 (assuming sum is in local currency)
+        $sumQuery = DB::table('order_prices')
+            ->selectRaw('SUM(price) as total')
+            ->where('price_id', 1)
+            ->where('order_id', $order->id);
+
+
+        // Fetch the sum of total prices for price_id 2 (assuming sum is in dollars)
+        $dollarQuery = DB::table('order_prices')
+            ->selectRaw('SUM(price) as total')
+            ->where('price_id', 2)
+            ->where('order_id', $order->id);
+
+        // Execute the queries
+        $sumResult = $sumQuery->first();
+        $dollarResult = $dollarQuery->first();
+
+        // Extract the total values or default to 0 if no result
+        $sumTotal = $sumResult ? $sumResult->total : 0;
+        $dollarTotal = $dollarResult ? $dollarResult->total : 0;
+
+        // Return the response as JSON
         return response()->json([
             'data' => $order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']),
             'total' => [
-                'dollar' => $dollar[0]->total,
-                'sum' => $sum[0]->total ?? 0
+                'dollar' => $dollarTotal,
+                'sum' => $sumTotal,
             ],
         ]);
     }
