@@ -16,6 +16,7 @@ class Expence extends Model
         'price_id',
         'type_id',
         'cost',
+        'status',
         'comment',
     ];
 
