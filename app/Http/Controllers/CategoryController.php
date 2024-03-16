@@ -14,14 +14,13 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Category::query()->with('branch');
+        $query = Category::query()->with('branch')->withCount('stores');
 
         // Check if search query parameter is provided
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where('name', 'like', "%$searchTerm%");
         }
-
         // Paginate the results
         $categories = $query->paginate(20);
 
