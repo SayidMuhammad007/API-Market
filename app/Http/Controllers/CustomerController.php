@@ -18,7 +18,7 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Customer::where('branch_id', $user->id);
+        $query = Customer::where('branch_id', $user->id)->where('status', 1);
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where('name', 'like', "%$$searchTerm%");
@@ -82,9 +82,11 @@ class CustomerController extends Controller
                 'message' => 'Customer has debts'
             ]);
         }
-        $customer->delete();
+        $customer->update([
+            'status' => 0,
+        ]);
         $user = auth()->user();
-        $customers = Customer::where('branch_id', $user->id)->paginate(10);
+        $customers = Customer::where('branch_id', $user->id)->where('status', 1)->paginate(10);
         return response()->json($customers);
     }
 

@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Category routes
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/category', [CategoryController::class, 'store']);
+    Route::delete('/category/{category}', [CategoryController::class, 'destroy']);
 
     // Company routes
     Route::get('/companies', [CompanyController::class, 'index']);

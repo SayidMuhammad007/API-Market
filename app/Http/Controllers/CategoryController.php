@@ -73,6 +73,13 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        //
+        $products = $category->stores()->get();
+        if ($products) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category has products',
+            ], 400);
+        }
+        $category->delete();
     }
 }

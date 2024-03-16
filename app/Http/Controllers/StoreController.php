@@ -12,12 +12,12 @@ use Illuminate\Http\Request;
 
 class StoreController extends Controller
 {
-    /**
+    /** 
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Store::query()->with(['media', 'category', 'branch', 'price']);
+        $query = Store::query()->with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id);
 
         // Check if search query parameter is provided
         if ($request->has('search')) {
@@ -33,7 +33,7 @@ class StoreController extends Controller
         }
 
         // Paginate the results
-        $stores = $query->paginate(10);
+        $stores = $query->where('status', 1)->paginate(10);
 
         return response()->json($stores);
     }
@@ -74,7 +74,7 @@ class StoreController extends Controller
         }
         $branch->update(['barcode' => ++$branch->barcode]);
 
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(20), 201);
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('status', 1)->paginate(20), 201);
     }
 
     /**
@@ -141,7 +141,7 @@ class StoreController extends Controller
             $item->addMediaFromRequest('image')->toMediaCollection('images');
         }
 
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(20));
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('status', 1)->paginate(20));
     }
 
     /**
@@ -150,8 +150,10 @@ class StoreController extends Controller
     public function destroy(DeleteStoreRequest $request)
     {
         foreach ($request->stores as $store) {
-            Store::where('id', $store)->delete();
+            Store::where('id', $store)->update([
+                'status' => '0'
+            ]);
         }
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->paginate(20));
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('status', 1)->paginate(20));
     }
 }

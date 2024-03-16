@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = User::with(['userAccess.access', 'branch'])->where('branch_id', $user->id);
+        $query = User::with(['userAccess.access', 'branch'])->where('branch_id', $user->id)->where('status', 1);
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where('name', 'like', "%$$searchTerm%");
@@ -197,6 +197,13 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $user->update([
+            'status' => '0',
+        ]);
+
+        $user = auth()->user();
+        $query = User::with(['userAccess.access', 'branch'])->where('branch_id', $user->id)->where('status', 1);
+        $users = $query->paginate(10);
+        return response()->json($users);
     }
 }

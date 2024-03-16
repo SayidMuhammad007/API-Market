@@ -14,7 +14,7 @@ class ExpenceController extends Controller
      */
     public function index()
     {
-        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->paginate(20));
+        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->paginate(20));
     }
 
     /**
@@ -64,9 +64,9 @@ class ExpenceController extends Controller
      */
     public function destroy(Expence $expence)
     {
-        if ($expence) {
-            $expence->delete();
-        }
-        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->paginate(20));
+        $expence->update([
+            'status' => 0,
+        ]);
+        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->paginate(20));
     }
 }
