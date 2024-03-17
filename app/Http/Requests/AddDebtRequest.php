@@ -22,7 +22,6 @@ class AddDebtRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type_id' => 'required',
             'price_id' => 'required',
             'price' => 'required',
         ];

@@ -58,15 +58,49 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        $data = $customer->customerLog()->with(['branch', 'type', 'customer'])->where('branch_id', auth()->user()->branch_id)->get();
-        $debts = $customer->customerLog()->where('type_id', 4)->sum('price');
-        $payments = $customer->customerLog()->where('type_id', "!=", 4)->sum('price');
+        list($data, $dollar, $sum) = $this->calculate($customer);
         return response()->json([
             'data' => $data,
-            'debts' => $debts,
-            'payments' => $payments
+            'debts' => [
+                'all_dollar' => $dollar,
+                'all_sum' => $sum,
+            ],
         ]);
     }
+
+    public function calculate($customer)
+    {
+        $dollar = Price::where('id', 2)->value('value');
+
+        // Retrieve customer log data with relationships
+        $data = $customer->customerLog()->with(['branch', 'type', 'customer'])
+            ->where('branch_id', auth()->user()->branch_id)
+            ->get();
+
+        // Calculate total debts and payments in both currencies
+        $debts_sum = $customer->customerLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
+        $debts_dollar = $customer->customerLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
+        $payments_dollar = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
+        $payments_sum = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
+
+        // Calculate total debts and payments in soums and dollars
+        $total_sum = $debts_sum - $payments_sum;
+        $total_dollar = $debts_dollar - $payments_dollar;
+
+        // Convert negative totals to positive if necessary
+        if ($total_sum < 0) {
+            $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
+            // return response()->json($total_dollar);
+            $total_sum = 0;
+        } else if ($total_dollar < 0) {
+            $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
+            $total_dollar = 0;
+        }
+        $all_dollar = $total_dollar + ($total_sum / $dollar);
+        $all_sum = $total_sum + ($total_dollar * $dollar);
+        return [$data, $all_dollar, $all_sum];
+    }
+
 
     /**
      * Update the specified resource in storage.
@@ -81,18 +115,25 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        $debts = $customer->customerLog()->where('type_id', '!=', 4)->first();
+        // Check if the customer has debts
+        $debts = $customer->customerLog()->where('type_id', 4)->exists();
+
         if ($debts) {
             return response()->json([
                 'success' => false,
                 'message' => 'Customer has debts'
             ]);
         }
-        $customer->update([
-            'status' => 0,
-        ]);
+
+        // Update the status of the customer to 0 (inactive)
+        $customer->status = 0;
+        $customer->save();
+        // Retrieve paginated list of active customers for the current user's branch
         $user = auth()->user();
-        $customers = Customer::where('branch_id', $user->id)->where('status', 1)->paginate(10);
+        $customers = Customer::where('branch_id', $user->branch_id)
+            ->where('status', 1)
+            ->paginate(10);
+
         return response()->json($customers);
     }
 
@@ -121,14 +162,13 @@ class CustomerController extends Controller
             'price' => $request->price,
             'branch_id' => $customer->branch_id,
         ]);
-
-        $data = $customer->customerLog()->with(['branch', 'type', 'customer'])->where('branch_id', auth()->user()->branch_id)->get();
-        $debts = $customer->customerLog()->where('type_id', 4)->sum('price');
-        $payments = $customer->customerLog()->where('type_id', "!=", 4)->sum('price');
+        list($data, $dollar, $sum) = $this->calculate($customer);
         return response()->json([
             'data' => $data,
-            'debts' => $debts,
-            'payments' => $payments
+            'debts' => [
+                'all_dollar' => $dollar,
+                'all_sum' => $sum,
+            ],
         ]);
     }
 
@@ -151,7 +191,7 @@ class CustomerController extends Controller
         CustomerLog::create([
             'branch_id' => auth()->user()->branch_id,
             'customer_id' => $customer->id,
-            'type_id' => $request->type_id,
+            'type_id' => 4,
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,

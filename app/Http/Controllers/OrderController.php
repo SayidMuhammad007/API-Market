@@ -14,7 +14,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        return response()->json(auth()->user()->orders()->with(['customer', 'user'])->where('status', 1)->orderBy('id', 'desc')->paginate(20));
+        return response()->json(auth()->user()->orders()->with(['customer', 'user'])->where('status', 0 )->orderBy('id', 'desc')->paginate(20));
     }
 
     /**

@@ -35,6 +35,25 @@ class StoreController extends Controller
         // Paginate the results
         $stores = $query->where('status', 1)->paginate(10);
 
+        foreach ($stores as $store) {
+            $result = Store::where('barcode', $store->barcode)->where('id', '!=', $store->id)->get();
+
+            $otherStores = []; // Initialize an array to store other stores
+
+            foreach ($result as $r) {
+                $otherStore = [
+                    'branch_name' => $r->branch->name, // Access branch name through relationship
+                    'qty' => $r->quantity,
+                ];
+
+                $otherStores[] = $otherStore; // Add other store to the array
+            }
+
+            if (!empty($otherStores)) {
+                $store->other_stores = $otherStores; // Assign other stores array to the store
+            }
+        }
+
         return response()->json($stores);
     }
 
@@ -161,5 +180,31 @@ class StoreController extends Controller
             ]);
         }
         return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('status', 1)->paginate(20));
+    }
+
+    public function calculate()
+    {
+        $user = auth()->user();
+        $current_dollar = Price::where('id', 2)->value('value');
+        $stores = Store::where('branch_id', $user->branch_id)->where('status', 1)->get();
+        $count = $stores->count();
+        $sum = $stores->where('price_id', 1)->sum(function ($store) {
+            return $store->price_sell * $store->quantity;
+        });
+        $dollar = $stores->where('price_id', 2)->sum(function ($store) {
+            return $store->price_sell * $store->quantity;
+        });
+        return response()->json([
+            'count' => $count,
+            'calculate' => [
+                'sum' => $sum,
+                'dollar' => $dollar,
+            ],
+            'total' => [
+                'sum' => $sum + $dollar * $current_dollar,
+                'dollar' => $dollar + $sum / $current_dollar
+            ]
+
+        ]);
     }
 }
