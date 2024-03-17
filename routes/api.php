@@ -99,6 +99,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/basket/save', [BasketController::class, 'save']);
     Route::post('/basket/update', [BasketController::class, 'update']);
     Route::post('/basket/delete', [BasketController::class, 'destroy']);
+    Route::post('/basket/waiting', [BasketController::class, 'toWaiting']);
 
     // Expences routes
     Route::get('/expenses', [ExpenceController::class, 'index']);
@@ -109,6 +110,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Order routes
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/order/{order}', [OrderController::class, 'show']);
+    Route::get('/orders/waiting', [OrderController::class, 'waitingOrders']);
+    Route::get('/orders/waiting/{order}', [OrderController::class, 'waitingOrder']);
+    Route::get('/orders/unwaiting/{order}', [BasketController::class, 'unwaitOrder']);
 
     // Returned routes
     Route::get('/returned', [ReturnedStoreController::class, 'index']);

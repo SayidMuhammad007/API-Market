@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\DeleteBasketRequest;
 use App\Http\Requests\FinishOrderRequest;
 use App\Http\Requests\StoreBasketRequest;
+use App\Http\Requests\ToWaitingRequest;
 use App\Http\Requests\UpdateBasketRequest;
 use App\Models\Basket;
 use App\Models\BasketPrice;
@@ -346,5 +347,83 @@ class BasketController extends Controller
         $inDollarFormatted = number_format($inDollar, 2, '.', '');
 
         return [$inUzs, $inDollarFormatted, $dollar];
+    }
+
+    public function toWaiting(ToWaitingRequest $request)
+    {
+        $user = auth()->user();
+        $basket = Basket::where('id', $request->basket_ids[0])->first();
+        if ($basket) {
+            $order = $basket->order ?? Order::create([
+                'branch_id' => $user->branch_id,
+                'user_id' => $user->id,
+                'customer_id' => $request->customer_id ?? null,
+                'status' => 2,
+            ]);
+            $order->update(['status' => 2]);
+            foreach ($request->basket_ids as $item) {
+                $item = Basket::where('id', $item)->first();
+                $item->update([
+                    'status' => 2,
+                    'order_id' => $order->id,
+                ]);
+            }
+            list($inUzs, $inDollar, $dollar) = $this->calculate($user);
+
+            // Get the basket data
+            $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
+                ->where('user_id', $user->id)
+                ->where('status', 0)
+                ->get();
+
+            // Return the response with the basket data and calculated values
+            return response()->json([
+                'basket' => $basket,
+                'calc' => [
+                    'uzs' => $inUzs,
+                    'usd' => (float)$inDollar,
+                    'dollar' => (float)$dollar
+                ]
+            ], 200);
+        } else {
+            return response()->json(['error' => 'Basket not found'], 404);
+        }
+    }
+
+    public function unwaitOrder(Order $order)
+    {
+        if ($order->status == 2) {
+            $baskets = $order->baskets;
+            $order->update([
+                'status' => 1,
+            ]);
+            foreach ($baskets as $basket) {
+                $basket->update([
+                    'status' => 0,
+                ]);
+            }
+
+            $user = auth()->user(); // Retrieve the authenticated user
+            // Calculate the values
+            list($inUzs, $inDollar, $dollar) = $this->calculate($user);
+
+            // Get the basket data
+            $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
+                ->where('order_id', $order->id)
+                ->get();
+
+            // Return the response with the basket data and calculated values
+            return response()->json([
+                'basket' => $basket,
+                'calc' => [
+                    'uzs' => $inUzs,
+                    'usd' => (float)$inDollar,
+                    'dollar' => (float)$dollar
+                ]
+            ], 200);
+        }
+        return response()->json([
+            'error' => 'Order not found'
+        ], 404);
     }
 }
