@@ -90,6 +90,12 @@ class StoreController extends Controller
      */
     public function update(Request $request, Store $item)
     {
+        if (auth()->user()->id != 1) {
+            return response()->json([
+                'success' => 'false',
+                'message' => 'Only admins can update'
+            ], 401);
+        }
         // Check if the category exists
         if ($request->category_id) {
             $category = Category::find($request->category_id);

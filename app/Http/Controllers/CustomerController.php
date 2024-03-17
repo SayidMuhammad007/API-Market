@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddDebtRequest;
 use App\Http\Requests\PayCustomerRequest;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Models\Branch;
 use App\Models\Customer;
+use App\Models\CustomerLog;
 use App\Models\Price;
 use App\Models\Type;
 use Illuminate\Http\Request;
@@ -127,6 +129,36 @@ class CustomerController extends Controller
             'data' => $data,
             'debts' => $debts,
             'payments' => $payments
+        ]);
+    }
+
+    public function addDebt(Customer $customer, AddDebtRequest $request)
+    {
+        $type = Type::find($request->type_id);
+        if (!$type) {
+            return response()->json([
+                'error' => 'Type not found'
+            ], 404);
+        }
+
+        $price = Price::find($request->price_id);
+        if (!$price) {
+            return response()->json([
+                'error' => 'Price not found'
+            ], 404);
+        }
+
+        CustomerLog::create([
+            'branch_id' => auth()->user()->branch_id,
+            'customer_id' => $customer->id,
+            'type_id' => $request->type_id,
+            'price_id' => $request->price_id,
+            'comment' => $request->comment,
+            'price' => $request->price,
+        ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Debt added successfully'
         ]);
     }
 }
