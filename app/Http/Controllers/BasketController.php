@@ -297,7 +297,7 @@ class BasketController extends Controller
             ->where('status', 0)
             ->get();
         if ($basket->count() <= 0) {
-            $user->orders->where('status', 0)->update([
+            $user->orders()->where('status', 0)->update([
                 'status' =>  1,
             ]);
         }
