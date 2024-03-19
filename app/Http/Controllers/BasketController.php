@@ -237,7 +237,7 @@ class BasketController extends Controller
         }
 
         $product = Store::find($request->product_id);
-        if ($basket['quantity'] > $product['quantity']) {
+        if ($request['quantity'] > $product['quantity']) {
             return response()->json(['error' => 'Insufficient stock. Available quantity: ' . $product->quantity], 400);
         }
         // decrement product quantity
