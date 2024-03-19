@@ -22,9 +22,7 @@ class FinishOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'price_id' => 'required|integer',
-            'price' => 'required',
-            'type_id' => 'required|integer',
+            'data' => 'required|array',
         ];
     }
 }

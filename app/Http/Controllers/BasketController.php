@@ -124,71 +124,73 @@ class BasketController extends Controller
      */
     public function save(FinishOrderRequest $request)
     {
-        // Get authenticated user
-        $user = auth()->user();
+        foreach ($request->data as $item) {
+            // Get authenticated user
+            $user = auth()->user();
 
-        // Get calculated price
-        list($inUzs, $inDollar, $dollar) = $this->calculate($user);
+            // Get calculated price
+            list($inUzs, $inDollar, $dollar) = $this->calculate($user);
 
-        // Check if type exists
-        $type = Type::find($request->type_id);
-        if (!$type) {
-            return response()->json(['error' => 'Type not found'], 404);
-        }
-        if ($request->customer_id) {
-            $customer = Customer::find($request->customer_id);
-            if (!$customer) {
-                return response()->json(['error' => 'Customer not found'], 404);
+            // Check if type exists
+            $type = Type::find($item['type_id']);
+            if (!$type) {
+                return response()->json(['error' => 'Type not found'], 404);
             }
-        }
+            if ($item['customer_id']) {
+                $customer = Customer::find($item['customer_id']);
+                if (!$customer) {
+                    return response()->json(['error' => 'Customer not found'], 404);
+                }
+            }
 
-        // Get user's open basket
-        $basket = $user->baskets()->where('status', 0)->first();
+            // Get user's open basket
+            $basket = $user->baskets()->where('status', 0)->first();
 
-        // Check price and update basket and order accordingly
-        if ($request->price_id == 1 && (float)$request->price > (float)$inUzs) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Insufficient UZS'
-            ], 400);
-        }
+            // Check price and update basket and order accordingly
+            if ($item['price_id'] == 1 && (float)$item['price'] > (float)$inUzs) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient UZS'
+                ], 400);
+            }
 
-        if ($request->price_id == 2 && $request->price > $inDollar) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Insufficient Dollar'
-            ], 400);
-        }
-        // Check if basket has an associated order, if not, create a new order
-        $order = $basket->order ?? Order::create([
-            'branch_id' => $user->branch_id,
-            'user_id' => $user->id,
-            'customer_id' => $request->customer_id ?? null,
-            'status' => 1,
-        ]);
-        $basket = $user->baskets()->where('status', 0)->get();
-        foreach ($basket as $item) {
-            $item->update(['order_id' => $order->id]);
-        }
-        // Update basket order_id
-
-        // Add order price
-        $order->order_price()->create([
-            'price_id' => $request->price_id,
-            'type_id' => $request->type_id,
-            'price' => $request->price,
-        ]);
-
-        // add price to customer debt
-        if ($request->type_id == 4) {
-            CustomerLog::create([
-                'branch_id' => $order->branch_id,
-                'customer_id' => $request->customer_id,
-                'type_id' => $request->type_id,
-                'price_id' => $request->price_id,
-                'price' => $request->price,
-                'comment' => $request->comment ?? "",
+            if ($item['price_id'] == 2 && $item['price'] > $inDollar) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient Dollar'
+                ], 400);
+            }
+            // Check if basket has an associated order, if not, create a new order
+            $order = $basket->order ?? Order::create([
+                'branch_id' => $user->branch_id,
+                'user_id' => $user->id,
+                'customer_id' => $item['customer_id'] ?? null,
+                'status' => 1,
             ]);
+            $basket = $user->baskets()->where('status', 0)->get();
+            foreach ($basket as $test) {
+                $test->update(['order_id' => $order->id]);
+            }
+            // Update basket order_id
+
+            // Add order price
+            $order->order_price()->create([
+                'price_id' => $item['price_id'],
+                'type_id' => $item['type_id'],
+                'price' => $item['price'],
+            ]);
+
+            // add price to customer debt
+            if ($item['type_id'] == 4) {
+                CustomerLog::create([
+                    'branch_id' => $order->branch_id,
+                    'customer_id' => $item['customer_id'],
+                    'type_id' => $item['type_id'],
+                    'price_id' => $item['price_id'],
+                    'price' => $item['price'],
+                    'comment' => $item['comment'] ?? "",
+                ]);
+            }
         }
         // Recalculate after adding order price
         list($inUzs, $inDollar) = $this->calculate($user);
@@ -294,7 +296,11 @@ class BasketController extends Controller
             ->where('user_id', $user->id)
             ->where('status', 0)
             ->get();
-
+        if ($basket->count() <= 0) {
+            $basket->order->update([
+                'status' =>  1,
+            ]);
+        }
         return response()->json([
             'basket' => $basket,
             'calc' => [
