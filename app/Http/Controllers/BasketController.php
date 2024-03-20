@@ -171,7 +171,6 @@ class BasketController extends Controller
             foreach ($basket as $test) {
                 $test->update(['order_id' => $order->id]);
             }
-            // Update basket order_id
 
             // Add order price
             $order->order_price()->create([
@@ -191,15 +190,16 @@ class BasketController extends Controller
                     'comment' => $item['comment'] ?? "",
                 ]);
             }
-        }
-        // Recalculate after adding order price
-        list($inUzs, $inDollar) = $this->calculate($user);
+            // Recalculate after adding order price
+            list($inUzs, $inDollar) = $this->calculate($user);
 
-        // If both UZS and USD are zero, update basket and order status
-        if ($inUzs <= 0 && $inDollar <= 0) {
-            $user->baskets()->where('status', '0')->update(['status' => 1]);
-            $order->update(['status' => 0]);
+            // If both UZS and USD are zero, update basket and order status
+            if ($inUzs <= 0 && $inDollar <= 0) {
+                $user->baskets()->where('status', '0')->update(['status' => 1]);
+                $order->update(['status' => 0]);
+            }
         }
+
 
         // Get updated basket data
         $basket = $order->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 0)->get();
@@ -330,11 +330,11 @@ class BasketController extends Controller
                 ->where('user_id', $user->id);
         })->get();
         // Calculate total sum and total dollar from basket prices
-        $totalSum = $basketPrices->where('price_id', 1)->sum('total');
-        $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
+        $totalSum = (float)$basketPrices->where('price_id', 1)->sum('total');
+        $totalDollar = (float)$basketPrices->where('price_id', 2)->sum('total');
 
         // Retrieve the user's order with status 1
-        $order = Order::where('status', 0)
+        $order = Order::where('status', 1)
             ->where('user_id', $user->id)
             ->with('order_price')
             ->first();
@@ -345,8 +345,8 @@ class BasketController extends Controller
 
         if ($order) {
             // Retrieve the sum of prices from the order
-            $payed_sum = $order->order_price->where('price_id', 1)->sum('price');
-            $payed_dollar = $order->order_price->where('price_id', 2)->sum('price');
+            $payed_sum = (float)$order->order_price->where('price_id', 1)->sum('price');
+            $payed_dollar = (float)$order->order_price->where('price_id', 2)->sum('price');
         }
 
         // Calculate values in UZS and USD
