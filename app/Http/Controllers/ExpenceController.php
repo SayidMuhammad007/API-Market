@@ -12,9 +12,29 @@ class ExpenceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->paginate(20));
+        $query = Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1);
+
+        // Check if search query parameter is provided
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(function ($query) use ($searchTerm) {
+                $query->where('comment', 'like', "%$searchTerm%")
+                    ->where('cost', 'like', "%$searchTerm%")
+                    ->orWhereHas('price', function ($priceQuery) use ($searchTerm) {
+                        $priceQuery->where('name', 'like', "%$searchTerm%");
+                    })
+                    ->orWhereHas('type', function ($typeQuery) use ($searchTerm) {
+                        $typeQuery->where('name', 'like', "%$searchTerm%");
+                    });
+            });
+        }
+
+        // Paginate the results
+        $expences = $query->paginate(20);
+
+        return response()->json($expences);
     }
 
     /**
@@ -37,7 +57,7 @@ class ExpenceController extends Controller
 
         Expence::create($expenceData);
 
-        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->paginate(20));
+        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->paginate(20));
     }
 
     /**
@@ -55,7 +75,7 @@ class ExpenceController extends Controller
     {
         $expence->update($request->all());
 
-        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->paginate(20));
+        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->paginate(20));
     }
 
 

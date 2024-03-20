@@ -12,6 +12,7 @@ class Category extends Model
     protected $fillable = [
         'name',
         'branch_id',
+        'status',
     ];
 
     public function branch()

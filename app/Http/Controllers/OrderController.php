@@ -12,9 +12,24 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(auth()->user()->orders()->with(['customer', 'user'])->where('status', 0 )->orderBy('id', 'desc')->paginate(20));
+        $query = auth()->user()->orders()->with(['customer', 'user'])->where('status', 0)->orderBy('id', 'desc');
+
+        // Check if search query parameter is provided
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(function ($query) use ($searchTerm) {
+                $query->orWhereHas('customer', function ($customerQuery) use ($searchTerm) {
+                    $customerQuery->where('name', 'like', "%$searchTerm%");
+                });
+            });
+        }
+
+        // Paginate the results
+        $orders = $query->paginate(20);
+
+        return response()->json($orders);
     }
 
     /**

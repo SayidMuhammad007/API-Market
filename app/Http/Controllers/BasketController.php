@@ -334,7 +334,7 @@ class BasketController extends Controller
         $totalDollar = $basketPrices->where('price_id', 2)->sum('total');
 
         // Retrieve the user's order with status 1
-        $order = Order::where('status', 1)
+        $order = Order::where('status', 0)
             ->where('user_id', $user->id)
             ->with('order_price')
             ->first();

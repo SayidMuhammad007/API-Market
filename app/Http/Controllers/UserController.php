@@ -197,9 +197,8 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        $user->update([
-            'status' => '0',
-        ]);
+        $user->status = 0;
+        $user->save();
 
         $user = auth()->user();
         $query = User::with(['userAccess.access', 'branch'])->where('branch_id', $user->id)->where('status', 1);

@@ -73,12 +73,14 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         $products = $category->stores()->get();
-        if ($products) {
+        if ($products->count() > 0) {
             return response()->json([
                 'success' => false,
                 'message' => 'Category has products',
             ], 400);
         }
         $category->delete();
+        $categories = Category::query()->with('branch')->withCount('stores')->paginate(20);
+        return response()->json($categories);
     }
 }

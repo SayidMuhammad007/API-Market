@@ -14,10 +14,30 @@ class ReturnedStoreController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(ReturnedStore::with(['user', 'store'])->where('branch_id', auth()->user()->id)->paginate(20));
+        $query = ReturnedStore::with(['user', 'store'])->where('branch_id', auth()->user()->id);
+
+        // Check if search query parameter is provided
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(function ($query) use ($searchTerm) {
+                $query->where('comment', 'like', "%$searchTerm%")
+                    ->orWhereHas('store', function ($storeQuery) use ($searchTerm) {
+                        $storeQuery->where('name', 'like', "%$searchTerm%");
+                    })
+                    ->orWhereHas('user', function ($userQuery) use ($searchTerm) {
+                        $userQuery->where('name', 'like', "%$searchTerm%");
+                    });
+            });
+        }
+
+        // Paginate the results
+        $returneds = $query->paginate(20);
+
+        return response()->json($returneds);
     }
+
 
     /**
      * Store a newly created resource in storage.
