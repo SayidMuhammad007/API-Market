@@ -26,7 +26,6 @@ class StoreCompanyRequest extends FormRequest
         return [
             'name' => 'required|min:3',
             'phone' => 'required|min:3',
-            'debt' => 'required',
             'branch_id' => 'integer|required',
         ];
     }
