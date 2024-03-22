@@ -101,7 +101,19 @@ class ReturnedStoreController extends Controller
                 $order->delete();
             }
         }
-        return response()->json($basket);
+        if ($order) {
+            $orderController = new OrderController();
+            list($data, $dollar, $sum) = $orderController->showOrderData($order);
+            return response()->json([
+                'data' => $data,
+                'total' => [
+                    'dollar' => $dollar,
+                    'sum' => $sum,
+                ],
+            ]);
+        } else {
+            return response()->json(['status' => true]);
+        }
     }
 
     /**
