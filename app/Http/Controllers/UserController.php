@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = User::with(['userAccess.access', 'branch'])->where('branch_id', $user->id)->where('status', 1);
+        $query = User::with(['UserAccess.access', 'branch'])->where('branch_id', $user->id)->where('status', 1);
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where('name', 'like', "%$$searchTerm%");
@@ -172,12 +172,12 @@ class UserController extends Controller
         // Sync user access
         if ($accessIds) {
             // Detach existing UserAccess records
-            $user->userAccess()->delete();
+            $user->UserAccess()->delete();
 
 
             // Attach the new UserAccess records
             foreach ($accessIds as $accessId) {
-                $user->userAccess()->create([
+                $user->UserAccess()->create([
                     'access_id' => $accessId,
                 ]);
             }
@@ -188,7 +188,7 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'User updated successfully',
-            'user' => $user->load(['userAccess.access', 'branch']),
+            'user' => $user->load(['UserAccess.access', 'branch']),
         ], 200);
     }
 
@@ -201,7 +201,7 @@ class UserController extends Controller
         $user->save();
 
         $user = auth()->user();
-        $query = User::with(['userAccess.access', 'branch'])->where('branch_id', $user->id)->where('status', 1);
+        $query = User::with(['UserAccess.access', 'branch'])->where('branch_id', $user->id)->where('status', 1);
         $users = $query->paginate(10);
         return response()->json($users);
     }
