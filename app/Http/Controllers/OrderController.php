@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Basket;
 use App\Models\Order;
+use App\Models\Price;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -37,33 +38,13 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        // Fetch the sum of total prices for price_id 1 (assuming sum is in local currency)
-        $sumQuery = DB::table('order_prices')
-            ->selectRaw('SUM(price) as total')
-            ->where('price_id', 1)
-            ->where('order_id', $order->id);
-
-
-        // Fetch the sum of total prices for price_id 2 (assuming sum is in dollars)
-        $dollarQuery = DB::table('order_prices')
-            ->selectRaw('SUM(price) as total')
-            ->where('price_id', 2)
-            ->where('order_id', $order->id);
-
-        // Execute the queries
-        $sumResult = $sumQuery->first();
-        $dollarResult = $dollarQuery->first();
-
-        // Extract the total values or default to 0 if no result
-        $sumTotal = $sumResult ? $sumResult->total : 0;
-        $dollarTotal = $dollarResult ? $dollarResult->total : 0;
-
-        // Return the response as JSON
+        $orderController = new OrderController();
+        list($data, $dollar, $sum) = $orderController->showOrderData($order);
         return response()->json([
-            'data' => $order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']),
+            'data' => $data,
             'total' => [
-                'dollar' => $dollarTotal,
-                'sum' => $sumTotal,
+                'dollar' => $dollar,
+                'sum' => $sum,
             ],
         ]);
     }
@@ -85,28 +66,34 @@ class OrderController extends Controller
 
     public function showOrderData($order)
     {
-        // Fetch the sum of total prices for price_id 1 (assuming sum is in local currency)
-        $sumQuery = DB::table('order_prices')
-            ->selectRaw('SUM(price) as total')
-            ->where('price_id', 1)
-            ->where('order_id', $order->id);
+        // Fetch the sum of total prices for price_id 1 (local currency) and price_id 2 (dollars)
+        $result = DB::table('order_prices')
+            ->selectRaw('price_id, SUM(price) as total')
+            ->where('order_id', $order->id)
+            ->whereIn('price_id', [1, 2])
+            ->groupBy('price_id')
+            ->get();
 
+        $sumTotal = 0;
+        $dollarTotal = 0;
+        $dollarRate = Price::where('id', 2)->value('value');
 
-        // Fetch the sum of total prices for price_id 2 (assuming sum is in dollars)
-        $dollarQuery = DB::table('order_prices')
-            ->selectRaw('SUM(price) as total')
-            ->where('price_id', 2)
-            ->where('order_id', $order->id);
+        foreach ($result as $item) {
+            if ($item->price_id == 1) {
+                $sumTotal = $item->total;
+            } elseif ($item->price_id == 2) {
+                $dollarTotal = $item->total;
+            }
+        }
 
-        // Execute the queries
-        $sumResult = $sumQuery->first();
-        $dollarResult = $dollarQuery->first();
+        // Adjust totals based on exchange rates if necessary
+        if ($dollarTotal < 0) {
+            $sumTotal -= $dollarTotal * $dollarRate;
+        } elseif ($sumTotal < 0) {
+            $dollarTotal -= $sumTotal / $dollarRate;
+        }
 
-        // Extract the total values or default to 0 if no result
-        $sumTotal = $sumResult ? $sumResult->total : 0;
-        $dollarTotal = $dollarResult ? $dollarResult->total : 0;
+        // Load related data and return along with calculated totals
         return [$order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']), $dollarTotal, $sumTotal];
-        // Return the response as JSON
-        
     }
 }
