@@ -17,7 +17,7 @@ class ReturnedStoreController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ReturnedStore::with(['user', 'store'])->where('branch_id', auth()->user()->id);
+        $query = ReturnedStore::with(['user', 'store', 'cost', 'type'])->where('branch_id', auth()->user()->id);
 
         // Check if search query parameter is provided
         if ($request->has('search')) {
@@ -79,6 +79,9 @@ class ReturnedStoreController extends Controller
                 'store_id' => $item['store_id'],
                 'quantity' => $item['quantity'],
                 'comment' => $item['comment'],
+                'price' => $basket->basket_price[0]->agreed_price,
+                'price_id' => $basket->basket_price[0]->price_id,
+                'type_id' => $basket->basket_price[0]->type_id,
             ]);
 
             $store->update([
@@ -86,15 +89,13 @@ class ReturnedStoreController extends Controller
             ]);
             if ($basket->quantity <= $item['quantity']) {
                 $price = 0;
-                if($basket->basket_price[0]->price_id == 2 && $request->price_id == 1){
+                if ($basket->basket_price[0]->price_id == 2 && $request->price_id == 1) {
                     $dollar = Price::where('id', 2)->value('value');
                     $price = $dollar * $basket->basket_price[0]->agreed_price;
-                }
-                else if($basket->basket_price[0]->price_id == 1 && $request->price_id == 2){
+                } else if ($basket->basket_price[0]->price_id == 1 && $request->price_id == 2) {
                     $dollar = Price::where('id', 2)->value('value');
                     $price = $basket->basket_price[0]->agreed_price / $dollar;
-                }
-                else{
+                } else {
                     $price = $basket->basket_price[0]->agreed_price;
                 }
                 $order->order_price()->create([

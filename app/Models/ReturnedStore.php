@@ -15,6 +15,9 @@ class ReturnedStore extends Model
         'branch_id',
         'quantity',
         'comment',
+        'price',
+        'price_id',
+        'type_id',
     ];
 
     public function store(): BelongsTo
@@ -29,5 +32,15 @@ class ReturnedStore extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function cost(): BelongsTo
+    {
+        return $this->belongsTo(Price::class);
+    }
+
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(Type::class);
     }
 }
