@@ -286,10 +286,7 @@ class BasketController extends Controller
             // Delete the basket
             $basket->delete();
         }
-
-        // Calculate totals
         $user = auth()->user();
-        list($inUzs, $inDollar, $dollar) = $this->calculate($user);
 
         // Return updated list of baskets and totals
         $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
@@ -297,10 +294,13 @@ class BasketController extends Controller
             ->where('status', 0)
             ->get();
         if ($basket->count() <= 0) {
-            $user->orders()->where('status', 0)->update([
-                'status' =>  1,
+            $user->orders()->where('status', 1)->update([
+                'status' =>  0,
             ]);
         }
+
+        // Calculate totals
+        list($inUzs, $inDollar, $dollar) = $this->calculate($user);
         return response()->json([
             'basket' => $basket,
             'calc' => [
