@@ -88,9 +88,11 @@ class OrderController extends Controller
 
         // Adjust totals based on exchange rates if necessary
         if ($dollarTotal < 0) {
-            $sumTotal -= $dollarTotal * $dollarRate;
+            $sumTotal += $dollarTotal * $dollarRate;
+            $dollarTotal = 0;
         } elseif ($sumTotal < 0) {
-            $dollarTotal -= $sumTotal / $dollarRate;
+            $dollarTotal += $sumTotal / $dollarRate;
+            $sumTotal = 0;
         }
 
         // Load related data and return along with calculated totals
