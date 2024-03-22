@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreReturnRequest;
 use App\Models\Basket;
 use App\Models\Order;
+use App\Models\Price;
 use App\Models\ReturnedStore;
 use App\Models\Store;
 use Illuminate\Http\Request;
@@ -84,10 +85,22 @@ class ReturnedStoreController extends Controller
                 'quantity' => $item['quantity'] + $store->quantity,
             ]);
             if ($basket->quantity <= $item['quantity']) {
+                $price = 0;
+                if($basket->basket_price[0]->price_id == 2 && $request->price_id == 1){
+                    $dollar = Price::where('id', 2)->value('value');
+                    $price = $dollar * $basket->basket_price[0]->agreed_price;
+                }
+                else if($basket->basket_price[0]->price_id == 1 && $request->price_id == 2){
+                    $dollar = Price::where('id', 2)->value('value');
+                    $price = $basket->basket_price[0]->agreed_price / $dollar;
+                }
+                else{
+                    $price = $basket->basket_price[0]->agreed_price;
+                }
                 $order->order_price()->create([
                     'price_id' => $request->price_id,
                     'type_id' => $request->type_id,
-                    'price' => -$basket->basket_price[0]->agreed_price,
+                    'price' => -$price,
                 ]);
                 $basket->delete();
             } else {
