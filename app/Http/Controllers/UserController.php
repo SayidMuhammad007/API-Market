@@ -77,7 +77,7 @@ class UserController extends Controller
 
         // Create a UserAccess record for the new user
         foreach ($access_ids as $access_id) {
-            $newUser->userAccess()->create([
+            $newUser->UserAccess()->create([
                 'access_id' => $access_id,
             ]);
         }
