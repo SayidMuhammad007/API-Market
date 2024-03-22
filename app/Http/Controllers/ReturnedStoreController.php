@@ -91,7 +91,8 @@ class ReturnedStoreController extends Controller
                     'quantity' => $newQuantity,
                 ]);
             }
-            if (!$order->baskets()->count() > 0) {
+            // return response()->json([$basket->basket_price, ]);  
+            if ($order->baskets->count() <= 0) {
                 $order->delete();
             } else {
                 $order->order_price()->create([
