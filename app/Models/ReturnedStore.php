@@ -15,7 +15,7 @@ class ReturnedStore extends Model
         'branch_id',
         'quantity',
         'comment',
-        'price',
+        'cost',
         'price_id',
         'type_id',
     ];
