@@ -51,7 +51,7 @@ class CompanyController extends Controller
         }
 
         // Create the company
-        $company = Company::create($request->all());
+        Company::create($request->all());
         $user = auth()->user();
         $customers = Company::where('branch_id', $user->id)->paginate(10);
         return response()->json($customers);
