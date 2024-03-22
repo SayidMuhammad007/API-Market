@@ -21,6 +21,7 @@ class OrderController extends Controller
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where(function ($query) use ($searchTerm) {
+                $query->where('id', 'like', "%$searchTerm%");
                 $query->orWhereHas('customer', function ($customerQuery) use ($searchTerm) {
                     $customerQuery->where('name', 'like', "%$searchTerm%");
                 });
