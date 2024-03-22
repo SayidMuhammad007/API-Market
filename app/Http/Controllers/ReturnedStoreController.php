@@ -84,6 +84,11 @@ class ReturnedStoreController extends Controller
                 'quantity' => $item['quantity'] + $store->quantity,
             ]);
             if ($basket->quantity <= $item['quantity']) {
+                $order->order_price()->create([
+                    'price_id' => $request->price_id,
+                    'type_id' => $request->type_id,
+                    'price' => -$basket->basket_price[0]->agreed_price,
+                ]);
                 $basket->delete();
             } else {
                 $newQuantity = $basket->quantity - $item['quantity'];
@@ -94,12 +99,6 @@ class ReturnedStoreController extends Controller
             // return response()->json([$basket->basket_price, ]);  
             if ($order->baskets->count() <= 0) {
                 $order->delete();
-            } else {
-                $order->order_price()->create([
-                    'price_id' => $request->price_id,
-                    'type_id' => $request->type_id,
-                    'price' => -$basket->basket_price[0]->agreed_price,
-                ]);
             }
         }
         return response()->json($basket);
