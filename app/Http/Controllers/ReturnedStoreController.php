@@ -34,7 +34,7 @@ class ReturnedStoreController extends Controller
         }
 
         // Paginate the results
-        $returneds = $query->paginate(20);
+        $returneds = $query->orderBy('id', 'DESC')->paginate(20);
 
         return response()->json($returneds);
     }

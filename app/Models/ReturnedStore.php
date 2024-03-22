@@ -37,9 +37,4 @@ class ReturnedStore extends Model
     {
         return $this->belongsTo(Price::class);
     }
-
-    public function type(): BelongsTo
-    {
-        return $this->belongsTo(Type::class);
-    }
 }
