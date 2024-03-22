@@ -79,7 +79,7 @@ class ReturnedStoreController extends Controller
                 'store_id' => $item['store_id'],
                 'quantity' => $item['quantity'],
                 'comment' => $item['comment'],
-                'price' => $basket->basket_price[0]->agreed_price,
+                'cost' => $basket->basket_price[0]->agreed_price,
                 'price_id' => $basket->basket_price[0]->price_id,
             ]);
 
