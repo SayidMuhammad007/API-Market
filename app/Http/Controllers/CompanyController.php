@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DebtCompanyRequest;
 use App\Http\Requests\PayCompanyRequest;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Models\Branch;
@@ -123,6 +124,32 @@ class CompanyController extends Controller
 
         $company->companyLog()->create([
             'type_id' => $request->type_id,
+            'price_id' => $request->price_id,
+            'comment' => $request->comment,
+            'price' => $request->price,
+            'branch_id' => $company->branch_id,
+        ]);
+
+        list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
+        return response()->json([
+            'data' => $data,
+            'debts_sum' => $debts_sum,
+            'debts_dollar' => $debts_dollar
+        ]);
+    }
+
+    public function debt(DebtCompanyRequest $request, Company $company)
+    {
+        // check price
+        $price = Price::where('id', $request->price_id)->first();
+        if (!$price) {
+            return response()->json([
+                'error' => 'Price not found'
+            ]);
+        }
+
+        $company->companyLog()->create([
+            'type_id' => 4,
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,

@@ -28,7 +28,6 @@ class StoreCompanyRequest extends FormRequest
             'phone' => 'required|min:3',
             'debt' => 'required',
             'branch_id' => 'integer|required',
-            'price_id' => 'integer|required',
         ];
     }
 

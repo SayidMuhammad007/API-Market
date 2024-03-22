@@ -66,7 +66,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Company routes
     Route::get('/companies', [CompanyController::class, 'index']);
     Route::get('/company/{company}', [CompanyController::class, 'show']);
-    Route::post('/company/{company}', [CompanyController::class, 'pay']);
+    Route::post('/company/pay/{company}', [CompanyController::class, 'pay']);
+    Route::post('/company/debt/{company}', [CompanyController::class, 'debt']);
     Route::post('/company', [CompanyController::class, 'store']);
     Route::delete('/company/{company}', [CompanyController::class, 'destroy']);
 
