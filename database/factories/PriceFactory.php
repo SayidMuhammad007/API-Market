@@ -2,11 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Price;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Price>
- */
 class PriceFactory extends Factory
 {
     /**
@@ -15,10 +13,10 @@ class PriceFactory extends Factory
      * @return array<string, mixed>
      */
     public function definition(): array
-    {   
-        $names = ['So`m', 'Dollar'];
+    {
         return [
-            'name' => $this->faker->unique()->randomElement($names),
+            'name' => "So`m",
+            'value' => 0,
         ];
     }
 }

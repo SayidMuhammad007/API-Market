@@ -53,6 +53,13 @@ class ReturnedStoreController extends Controller
             if (!$basket) {
                 return response()->json(['error' => 'Basket not found'], 404);
             }
+            if (empty($item['price_id'])) {
+                return response()->json(['error' => 'Price not found'], 404);
+            }
+
+            if (empty($item['type_id'])) {
+                return response()->json(['error' => 'Type not found'], 404);
+            }
 
             $store = Store::where('id', $item['store_id'])->first();
             if (!$store) {
@@ -72,6 +79,7 @@ class ReturnedStoreController extends Controller
                 'quantity' => $item['quantity'],
                 'comment' => $item['comment'],
             ]);
+
             $store->update([
                 'quantity' => $item['quantity'] + $store->quantity,
             ]);
@@ -84,8 +92,12 @@ class ReturnedStoreController extends Controller
                 ]);
             }
             if (!$order->baskets) {
-                $order->update([
-                    'status' => 5,
+                $order->delete();
+            } else {
+                $order->order_price()->create([
+                    'price_id' => $item['price_id'],
+                    'type_id' => $item['type_id'],
+                    'price' => -$basket->basket_price[0]->agreed_price,
                 ]);
             }
         }

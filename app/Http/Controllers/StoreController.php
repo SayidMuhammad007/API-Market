@@ -17,7 +17,7 @@ class StoreController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Store::query()->with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id);
+        $query = Store::query()->with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1);
 
         // Check if search query parameter is provided
         if ($request->has('search')) {
@@ -33,7 +33,7 @@ class StoreController extends Controller
         }
 
         // Paginate the results
-        $stores = $query->where('status', 1)->paginate(10);
+        $stores = $query->paginate(10);
 
         foreach ($stores as $store) {
             $result = Store::where('barcode', $store->barcode)->where('id', '!=', $store->id)->get();
