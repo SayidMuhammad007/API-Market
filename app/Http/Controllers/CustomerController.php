@@ -20,20 +20,22 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Customer::where('branch_id', $user->id)->where('status', 1)->where('branch_id', $user->branch_id);
+        $query = Customer::where('branch_id', $user->branch_id)
+            ->where('status', 1);
+
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
-            $query->where('name', 'like', "%$$searchTerm%");
-        } else if ($request->has('id')) {
+            $query->where('name', 'like', "%$searchTerm%");
+        } elseif ($request->has('id')) {
             $searchTerm = $request->input('id');
             $query->where('id', $searchTerm);
         }
-
 
         // Paginate the results
         $customers = $query->paginate(10);
         return response()->json($customers);
     }
+
 
     /**
      * Store a newly created resource in storage.
