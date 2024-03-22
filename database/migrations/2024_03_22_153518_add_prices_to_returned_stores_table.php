@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('returned_stores', function (Blueprint $table) {
-            $table->string('price');
+            $table->string('cost');
             $table->foreignId('price_id')->nullable();
-            $table->foreignId('type_id')->nullable();
         });
     }
 
@@ -24,9 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('returned_stores', function (Blueprint $table) {
-            $table->dropColumn('price');
+            $table->dropColumn('cost');
             $table->dropColumn('price_id');
-            $table->dropColumn('type_id');
         });
     }
 };

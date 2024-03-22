@@ -34,7 +34,7 @@ class ReturnedStore extends Model
         return $this->belongsTo(Branch::class);
     }
 
-    public function cost(): BelongsTo
+    public function price(): BelongsTo
     {
         return $this->belongsTo(Price::class);
     }
