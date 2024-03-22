@@ -17,7 +17,6 @@ class ReturnedStore extends Model
         'comment',
         'cost',
         'price_id',
-        'type_id',
     ];
 
     public function store(): BelongsTo
