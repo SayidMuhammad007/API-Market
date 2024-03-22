@@ -71,7 +71,7 @@ class UserController extends Controller
         $newUser = User::create([
             'name' => $request->name,
             'phone' => $request->phone,
-            'branch' => $request->branch_id,
+            'branch_id' => $request->branch_id,
             'password' => Hash::make($request->password),
         ]);
 

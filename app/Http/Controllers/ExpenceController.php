@@ -21,7 +21,7 @@ class ExpenceController extends Controller
             $searchTerm = $request->input('search');
             $query->where(function ($query) use ($searchTerm) {
                 $query->where('comment', 'like', "%$searchTerm%")
-                    ->where('cost', 'like', "%$searchTerm%")
+                    ->orWhere('cost', 'like', "%$searchTerm%")
                     ->orWhereHas('price', function ($priceQuery) use ($searchTerm) {
                         $priceQuery->where('name', 'like', "%$searchTerm%");
                     })
