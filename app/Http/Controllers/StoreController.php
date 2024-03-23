@@ -38,24 +38,24 @@ class StoreController extends Controller
         // Paginate the results
         $stores = $query->paginate(10);
 
-        foreach ($stores as $store) {
-            $result = Store::where('barcode', $store->barcode)->where('id', '!=', $store->id)->get();
+        // foreach ($stores as $store) {
+        //     $result = Store::where('barcode', $store->barcode)->where('id', '!=', $store->id)->get();
 
-            $otherStores = []; // Initialize an array to store other stores
+        //     $otherStores = []; // Initialize an array to store other stores
 
-            foreach ($result as $r) {
-                $otherStore = [
-                    'branch_name' => $r->branch->name, // Access branch name through relationship
-                    'qty' => $r->quantity,
-                ];
+        //     foreach ($result as $r) {
+        //         $otherStore = [
+        //             'branch_name' => $r->branch->name, // Access branch name through relationship
+        //             'qty' => $r->quantity,
+        //         ];
 
-                $otherStores[] = $otherStore; // Add other store to the array
-            }
+        //         $otherStores[] = $otherStore; // Add other store to the array
+        //     }
 
-            if (!empty($otherStores)) {
-                $store->other_stores = $otherStores; // Assign other stores array to the store
-            }
-        }
+        //     if (!empty($otherStores)) {
+        //         $store->other_stores = $otherStores; // Assign other stores array to the store
+        //     }
+        // }
 
         return response()->json($stores);
     }
