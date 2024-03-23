@@ -58,7 +58,7 @@ class OrderController extends Controller
     public function waitingOrder(Order $order)
     {
         if ($order->status == 2) {
-            list($data, $dollar, $sum) = $this->orderController()->showOrderData($order);
+            list($data, $dollar, $sum) = $this->showOrderData($order);
             return response()->json([
                 'data' => $data,
                 'total' => [
