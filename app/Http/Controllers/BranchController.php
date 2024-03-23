@@ -61,6 +61,7 @@ class BranchController extends Controller
 
     public function transfer(TransferBranchRequest $request)
     {
+        $count = 0;
         foreach ($request->products as $product) {
             $branch = Branch::find($product['branch_id']);
             // check branch
@@ -102,7 +103,9 @@ class BranchController extends Controller
             $check = Store::where('branch_id', $product['branch_id'])
                 ->where('barcode', $store->product_id)
                 ->first();
+
             if ($check) {
+                $count = 8;
                 $check->update([
                     'quantity' => $check->quantity + $product['quantity'],
                 ]);
@@ -121,13 +124,13 @@ class BranchController extends Controller
                     'danger_count' => $store->danger_count,
                     'status' => $store->status,
                 ]);
+                $count += 1;
                 if ($store->hasMedia('image')) {
                     $image = $store->getFirstMedia('image');
                     $item->addMedia($image)->toMediaCollection('images');
                 }
             }
-
-            return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('id', auth()->user()->branch_id)->paginate(20), 201);
         }
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('id', auth()->user()->branch_id)->paginate(20), 201);
     }
 }
