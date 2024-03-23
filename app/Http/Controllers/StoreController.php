@@ -89,10 +89,7 @@ class StoreController extends Controller
                 'message' => 'Price not found'
             ], 400);
         }
-        $item = Store::create(array_merge($request->all(), ['barcode' => $branch->barcode, 'branch_id' => $branch->id]));
-        $item->update([
-            'branch_id' => $branch->id,
-        ]);
+        $item = Store::create(array_merge($request->all(), ['barcode' => $branch->barcode, 'branch_id' => auth()->user->branch_id]));
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $item->addMediaFromRequest('image')->toMediaCollection('images');
         }
