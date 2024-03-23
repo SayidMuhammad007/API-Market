@@ -36,7 +36,7 @@ class StoreController extends Controller
         }
 
         // Paginate the results
-        $stores = $query->orderBy('DESC')->paginate(10);
+        $stores = $query->orderBy("id",'DESC')->paginate(10);
 
         return response()->json($stores);
     }
@@ -95,7 +95,7 @@ class StoreController extends Controller
         }
         $branch->update(['barcode' => ++$branch->barcode]);
 
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->orderBy("DESC")->paginate(20), 201);
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->orderBy("id","DESC")->paginate(20), 201);
     }
 
     /**
@@ -168,7 +168,7 @@ class StoreController extends Controller
             $item->addMediaFromRequest('image')->toMediaCollection('images');
         }
 
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('status', 1)->where('branch_id', auth()->user()->branch_id)->orderBy('DESC')->paginate(20));
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('status', 1)->where('branch_id', auth()->user()->branch_id)->orderBy("id",'DESC')->paginate(20));
     }
 
     /**
@@ -181,7 +181,7 @@ class StoreController extends Controller
                 'status' => '0'
             ]);
         }
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->orderBy("DESC")->paginate(20));
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->orderBy("id","DESC")->paginate(20));
     }
 
     public function calculate()
