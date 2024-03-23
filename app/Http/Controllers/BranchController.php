@@ -99,33 +99,33 @@ class BranchController extends Controller
             $store->update([
                 'quantity' => $store->quantity - $product['quantity']
             ]);
-            $check = Store::where('branch_id', $product['branch_id'])
-                ->where('barcode', $store->product_id)
-                ->first();
-            if ($check) {
-                $check->update([
-                    'quantity' => $check->quantity + $product['quantity'],
-                ]);
-            } else {
-                $item = Store::create([
-                    'branch_id' => $branch->id,
-                    'category_id' => $store->category_id,
-                    'price_id' => $store->price_id,
-                    'name' => $store->name,
-                    'made_in' => $store->made_in,
-                    'barcode' => $store->barcode,
-                    'price_come' => $store->price_come,
-                    'price_sell' => $store->price_sell,
-                    'price_wholesale' => $store->price_wholesale,
-                    'quantity' => $product['quantity'],
-                    'danger_count' => $store->danger_count,
-                    'status' => $store->status,
-                ]);
-                if ($store->hasMedia('image')) {
-                    $image = $store->getFirstMedia('image');
-                    $item->addMedia($image)->toMediaCollection('images');
-                }
+            // $check = Store::where('branch_id', $product['branch_id'])
+            //     ->where('barcode', $store->product_id)
+            //     ->first();
+            // if ($check) {
+            //     $check->update([
+            //         'quantity' => $check->quantity + $product['quantity'],
+            //     ]);
+            // } else {
+            $item = Store::create([
+                'branch_id' => $branch->id,
+                'category_id' => $store->category_id,
+                'price_id' => $store->price_id,
+                'name' => $store->name,
+                'made_in' => $store->made_in,
+                'barcode' => $store->barcode,
+                'price_come' => $store->price_come,
+                'price_sell' => $store->price_sell,
+                'price_wholesale' => $store->price_wholesale,
+                'quantity' => $product['quantity'],
+                'danger_count' => $store->danger_count,
+                'status' => $store->status,
+            ]);
+            if ($store->hasMedia('image')) {
+                $image = $store->getFirstMedia('image');
+                $item->addMedia($image)->toMediaCollection('images');
             }
+            // }
 
             return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('id', auth()->user()->branch_id)->paginate(20), 201);
         }
