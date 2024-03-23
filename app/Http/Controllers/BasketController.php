@@ -30,7 +30,6 @@ class BasketController extends Controller
         // Get the basket data
         $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
             ->where('user_id', $user->id)
-            ->where('branch_id', $user->branch_id)
             ->where('status', 0)
             ->get();
 
