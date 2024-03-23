@@ -15,7 +15,7 @@ class BranchController extends Controller
      */
     public function index()
     {
-        return response()->json(Branch::where('branch_id', auth()->user()->branch_id)->where('status', 1)->paginate(20));
+        return response()->json(Branch::where('id', auth()->user()->branch_id)->where('status', 1)->paginate(20));
     }
 
     /**
@@ -127,7 +127,7 @@ class BranchController extends Controller
                 }
             }
 
-            return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->paginate(20), 201);
+            return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('id', auth()->user()->branch_id)->where('status', 1)->paginate(20), 201);
         }
     }
 }
