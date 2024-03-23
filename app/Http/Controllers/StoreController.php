@@ -149,7 +149,7 @@ class StoreController extends Controller
         }
         // Update the item with the new data
         if ($request->branch_id) {
-            $item->update(array_merge($request->all(), ['barcode' => $branch->barcode]));
+            $item->update(array_merge($request->all(), ['barcode' => $branch->barcode, 'branch_id' => auth()->user()->branch_id]));
             $branch->update(['barcode' => ++$branch->barcode]);
         } else {
             $item->update(array_merge($request->all()));
