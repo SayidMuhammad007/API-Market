@@ -33,7 +33,7 @@ class StoreController extends Controller
         }
 
         // Paginate the results
-        $stores = $query->paginate(10000);
+        $stores = $query->paginate(10);
 
         foreach ($stores as $store) {
             $result = Store::where('barcode', $store->barcode)->where('id', '!=', $store->id)->get();
