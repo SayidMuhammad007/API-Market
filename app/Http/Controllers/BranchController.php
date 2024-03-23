@@ -96,9 +96,9 @@ class BranchController extends Controller
                 ], 400);
             }
 
-            $store->update([
-                'quantity' => $store->quantity - $product['quantity']
-            ]);
+            // $store->update([
+            //     'quantity' => $store->quantity - $product['quantity']
+            // ]);
             // $check = Store::where('branch_id', $product['branch_id'])
             //     ->where('barcode', $store->product_id)
             //     ->first();
