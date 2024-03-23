@@ -58,7 +58,14 @@ class OrderController extends Controller
     public function waitingOrder(Order $order)
     {
         if ($order->status == 2) {
-            return response()->json($order);
+            list($data, $dollar, $sum) = $this->orderController()->showOrderData($order);
+            return response()->json([
+                'data' => $data,
+                'total' => [
+                    'dollar' => $dollar,
+                    'sum' => $sum,
+                ],
+            ]);
         }
         return response()->json([
             'error' => 'Order not found'
