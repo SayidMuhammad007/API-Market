@@ -12,12 +12,9 @@ use App\Models\BasketPrice;
 use App\Models\Customer;
 use App\Models\CustomerLog;
 use App\Models\Order;
-use App\Models\OrderPrice;
 use App\Models\Price;
 use App\Models\Store;
 use App\Models\Type;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class BasketController extends Controller
 {
@@ -33,6 +30,7 @@ class BasketController extends Controller
         // Get the basket data
         $basket = Basket::with(['basket_price', 'store', 'basket_price.price'])
             ->where('user_id', $user->id)
+            ->where('branch_id', $user->branch_id)
             ->where('status', 0)
             ->get();
 
