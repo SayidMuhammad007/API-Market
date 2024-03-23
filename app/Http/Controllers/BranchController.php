@@ -15,7 +15,7 @@ class BranchController extends Controller
      */
     public function index()
     {
-        return response()->json(Branch::where('id', auth()->user()->branch_id)->paginate(20));
+        return response()->json(Branch::paginate(20));
     }
 
     /**
