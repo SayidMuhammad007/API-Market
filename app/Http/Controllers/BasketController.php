@@ -398,6 +398,11 @@ class BasketController extends Controller
     public function unwaitOrder(Order $order)
     {
         if ($order->status == 2) {
+            if(auth()->user()->baskets()->where('status', 0)->count() > 0){
+                return response()->json([
+                    'error' => 'Avval savatni tozalang!'
+                ]);
+            }
             $baskets = $order->baskets;
             $order->update([
                 'status' => 1,
