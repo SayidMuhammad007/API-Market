@@ -24,7 +24,10 @@ class StoreController extends Controller
             $searchTerm = $request->input('search');
             // Add conditions to search in relevant columns
             $query->where('name', 'like', "%$searchTerm%")
-                ->orWhere('barcode', 'like', "%$searchTerm%");
+                ->where('branch_id', auth()->user()->branch_id)
+                ->orWhere('barcode', 'like', "%$searchTerm%")
+                ->where('branch_id', auth()->user()->branch_id)
+                ;
 
             // Add condition to search by category name
             $query->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
