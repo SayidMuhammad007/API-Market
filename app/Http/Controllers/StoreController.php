@@ -17,50 +17,49 @@ class StoreController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Store::query()->with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1);
+        $query = Store::query()
+            ->with(['media', 'category', 'branch', 'price'])
+            ->where('branch_id', auth()->user()->branch_id)
+            ->where('status', 1);
 
         // Check if search query parameter is provided
         if ($request->has('search') && $request->input('search') != null) {
             $searchTerm = $request->input('search');
             // Add conditions to search in relevant columns
-            $query->where('name', 'like', "%$searchTerm%")
-                ->where('branch_id', auth()->user()->branch_id)
-                ->orWhere('barcode', 'like', "%$searchTerm%")
-                ->where('branch_id', auth()->user()->branch_id)
-                ;
-
-            // Add condition to search by category name
-            $query->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
-                $categoryQuery->where('name', 'like', "%$searchTerm%");
+            $query->where(function ($query) use ($searchTerm) {
+                $query->where('name', 'like', "%$searchTerm%")
+                    ->orWhere('barcode', 'like', "%$searchTerm%")
+                    ->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
+                        $categoryQuery->where('name', 'like', "%$searchTerm%");
+                    });
             });
         }
 
         // Paginate the results
         $stores = $query->paginate(10);
 
-        // foreach ($stores as $store) {
-        //     $result = Store::where('barcode', $store->barcode)->where('id', '!=', $store->id)->get();
-
-        //     $otherStores = []; // Initialize an array to store other stores
-
-        //     foreach ($result as $r) {
-        //         $otherStore = [
-        //             'branch_name' => $r->branch->name, // Access branch name through relationship
-        //             'qty' => $r->quantity,
-        //         ];
-
-        //         $otherStores[] = $otherStore; // Add other store to the array
-        //     }
-
-        //     if (!empty($otherStores)) {
-        //         $store->other_stores = $otherStores; // Assign other stores array to the store
-        //     }
-        // }
-
         return response()->json($stores);
     }
 
 
+    // foreach ($stores as $store) {
+    //     $result = Store::where('barcode', $store->barcode)->where('id', '!=', $store->id)->get();
+
+    //     $otherStores = []; // Initialize an array to store other stores
+
+    //     foreach ($result as $r) {
+    //         $otherStore = [
+    //             'branch_name' => $r->branch->name, // Access branch name through relationship
+    //             'qty' => $r->quantity,
+    //         ];
+
+    //         $otherStores[] = $otherStore; // Add other store to the array
+    //     }
+
+    //     if (!empty($otherStores)) {
+    //         $store->other_stores = $otherStores; // Assign other stores array to the store
+    //     }
+    // }
     /**
      * Store a newly created resource in storage.
      */
