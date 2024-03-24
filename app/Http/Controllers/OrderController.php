@@ -89,7 +89,7 @@ class OrderController extends Controller
             ->where('order_id', $order->id)
             ->where('type_id', 5)
             ->groupBy('price_id')
-            ->get();
+            ->first();
 
 
         $sumTotal = 0;
