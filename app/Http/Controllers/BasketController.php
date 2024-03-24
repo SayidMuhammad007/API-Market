@@ -121,11 +121,8 @@ class BasketController extends Controller
      */
     public function save(FinishOrderRequest $request)
     {
+        $user = auth()->user();
         foreach ($request->data as $item) {
-            // Get authenticated user
-            $user = auth()->user();
-
-            // Get calculated price
             list($inUzs, $inDollar, $dollar) = $this->calculate($user);
 
             // Check if type exists
@@ -157,6 +154,7 @@ class BasketController extends Controller
                     'message' => 'Insufficient Dollar'
                 ], 400);
             }
+
             // Check if basket has an associated order, if not, create a new order
             $order = $basket->order ?? Order::create([
                 'branch_id' => $user->branch_id,
@@ -167,6 +165,13 @@ class BasketController extends Controller
             $basket = $user->baskets()->where('status', 0)->get();
             foreach ($basket as $test) {
                 $test->update(['order_id' => $order->id]);
+            }
+            if ($reduced_price > 0) {
+                $order->order_price()->create([
+                    'price_id' => $item['price_id'],
+                    'type_id' => $item['type_id'],
+                    'price' => -$reduced_price,
+                ]);
             }
 
             // Add order price
@@ -197,7 +202,25 @@ class BasketController extends Controller
             }
         }
 
-
+        if ($request->price) {
+            if (!$request->price_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Price not found'
+                ], 404);
+            }
+            if (!$request->type_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Type not found'
+                ], 404);
+            }
+            $order->order_price()->create([
+                'price_id' => $request->price_id,
+                'type_id' => $request->type_id,
+                'price' => -$request->price,
+            ]);
+        }
         // Get updated basket data
         $basket = $order->baskets()->with(['basket_price', 'store', 'basket_price.price'])->where('status', 0)->get();
 
@@ -398,7 +421,7 @@ class BasketController extends Controller
     public function unwaitOrder(Order $order)
     {
         if ($order->status == 2) {
-            if(auth()->user()->baskets()->where('status', 0)->count() > 0){
+            if (auth()->user()->baskets()->where('status', 0)->count() > 0) {
                 return response()->json([
                     'error' => 'Avval savatni tozalang!'
                 ]);
