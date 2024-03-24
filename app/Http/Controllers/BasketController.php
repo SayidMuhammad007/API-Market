@@ -230,6 +230,7 @@ class BasketController extends Controller
         } else {
             return response()->json([
                 'status' => true,
+                'order_id' => $order->id
             ], 201);
         }
     }
