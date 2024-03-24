@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BasketPrice;
 use App\Models\Customer;
 use App\Models\Expence;
 use App\Models\OrderPrice;
@@ -19,6 +20,7 @@ class StatisticController extends Controller
         $year = $request->filled('year') ? $request->input('year') : Carbon::now()->year;
         $price_id = $request->filled('price_id') ? $request->input('price_id') : 1;
         $result_type = $request->filled('result_type') ? $request->input('result_type') : 'income';
+        $month = $request->filled('month') ? $request->input('month') : 0;
 
         // Define month names in Uzbek
         $month_names_uzbek = [
@@ -26,22 +28,45 @@ class StatisticController extends Controller
             'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'
         ];
 
-        // Calculate the income and outgoing sums for each month of the year
-        $monthly_data = [];
+        // Initialize data array
+        $data = [];
 
-        // Iterate through each month of the year
-        for ($month = 1; $month <= 12; $month++) {
-            // Calculate the start and end dates for the month
-            $start_date = Carbon::createFromDate($year, $month, 1)->startOfMonth();
-            $end_date = $start_date->copy()->endOfMonth();
+        // Check if specific month is requested
+        if ($month > 0) {
+            $data = $this->calculateDailyData($year, $month, $price_id, $result_type, $month_names_uzbek);
+        } else {
+            // Calculate data for each month of the year
+            for ($month = 1; $month <= 12; $month++) {
+                $monthlyData = $this->calculateMonthlyData($year, $month, $price_id, $result_type, $month_names_uzbek);
+                $data = array_merge($data, $monthlyData);
+            }
+        }
 
-            // Calculate the income and outgoing sums for the month
+        return response()->json([
+            'data' => $data,
+        ]);
+    }
+
+    private function calculateDailyData($year, $month, $price_id, $result_type, $month_names_uzbek)
+    {
+        // Initialize daily data array
+        $daily_data = [];
+
+        // Get the number of days in the specified month
+        $daysInMonth = Carbon::createFromDate($year, $month)->daysInMonth;
+
+        // Iterate through each day of the month
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            // Calculate the date for the current day
+            $currentDate = Carbon::createFromDate($year, $month, $day)->toDateString();
+
+            // Calculate the income and outgoing sums for the day
             $income_sum = OrderPrice::where('price_id', $price_id)
-                ->whereBetween('created_at', [$start_date, $end_date])
+                ->whereDate('created_at', $currentDate)
                 ->sum('price');
 
             $outgoing_sum = Expence::where('price_id', $price_id)
-                ->whereBetween('created_at', [$start_date, $end_date])
+                ->whereDate('created_at', $currentDate)
                 ->sum('cost');
 
             // Determine the result based on the result_type parameter
@@ -51,22 +76,74 @@ class StatisticController extends Controller
             } elseif ($result_type === 'outgoing') {
                 $result = $outgoing_sum;
             } elseif ($result_type === 'all') {
-                $result = $income_sum - $outgoing_sum;
+                $agreed_price = BasketPrice::where('price_id', $price_id)
+                    ->whereDate('created_at', $currentDate)
+                    ->sum('agreed_price');
+                $price_come = BasketPrice::where('price_id', $price_id)
+                    ->whereDate('created_at', $currentDate)
+                    ->sum('price_come');
+                $result = $agreed_price - $price_come - $outgoing_sum;
             }
 
-            // Add the monthly data to the result array
-            $monthly_data[] = [
+            // Add the daily data to the result array
+            $daily_data[] = [
                 'year' => $year,
                 'month' => $month,
-                'month_name' => $month_names_uzbek[$month - 1], // Subtract 1 because array index starts from 0
-                $result_type => $result,
+                'day' => $day,
+                'date' => $currentDate,
+                'result' => $result,
             ];
         }
 
-        return response()->json([
-            'monthly_data' => $monthly_data,
-        ]);
+        return $daily_data;
     }
+
+
+    private function calculateMonthlyData($year, $month, $price_id, $result_type, $month_names_uzbek)
+    {
+        // Initialize monthly data array
+        $monthly_data = [];
+
+        // Calculate the start and end dates for the month
+        $start_date = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $end_date = $start_date->copy()->endOfMonth();
+
+        // Calculate the income and outgoing sums for the month
+        $income_sum = OrderPrice::where('price_id', $price_id)
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->sum('price');
+
+        $outgoing_sum = Expence::where('price_id', $price_id)
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->sum('cost');
+
+        // Determine the result based on the result_type parameter
+        $result = 0;
+        if ($result_type === 'income') {
+            $result = $income_sum;
+        } elseif ($result_type === 'outgoing') {
+            $result = $outgoing_sum;
+        } elseif ($result_type === 'all') {
+            $agreed_price = BasketPrice::where('price_id', $price_id)
+                ->whereBetween('created_at', [$start_date, $end_date])
+                ->sum('agreed_price');
+            $price_come = BasketPrice::where('price_id', $price_id)
+                ->whereBetween('created_at', [$start_date, $end_date])
+                ->sum('price_come');
+            $result = $agreed_price - $price_come - $outgoing_sum;
+        }
+
+        // Add the monthly data to the result array
+        $monthly_data[] = [
+            'year' => $year,
+            'month' => $month,
+            'month_name' => $month_names_uzbek[$month - 1], // Subtract 1 because array index starts from 0
+            $result_type => $result,
+        ];
+
+        return $monthly_data;
+    }
+
 
 
 
