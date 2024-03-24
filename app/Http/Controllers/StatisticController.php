@@ -39,7 +39,7 @@ class StatisticController extends Controller
         } else {
             // Calculate data for each month of the year
             for ($month = 1; $month <= 12; $month++) {
-                $monthlyData = $this->calculateMonthlyData($year, $month, $price_id, $result_type, $month_names_uzbek);
+                $monthlyData = $this->calculateMonthlyData($year, $month, $price_id, $result_type, $month_names_uzbek, $branch_id);
                 $data = array_merge($data, $monthlyData);
             }
         }
@@ -62,8 +62,16 @@ class StatisticController extends Controller
             // Calculate the date for the current day
             $currentDate = Carbon::createFromDate($year, $month, $day)->toDateString();
 
-            // Calculate the income and outgoing sums for the day
-            $income_sum = Order::where('branch_id', $branch_id);
+            $income_sum = Order::where('branch_id', $branch_id)
+                ->whereDate('created_at', $currentDate)
+                ->with(['order_price' => function ($query) use ($price_id) {
+                    $query->where('price_id', $price_id);
+                }])
+                ->get()
+                ->sum(function ($order) {
+                    return $order->order_price->sum('price');
+                });
+
 
 
             $outgoing_sum = Expence::where('price_id', $price_id)
@@ -79,12 +87,17 @@ class StatisticController extends Controller
                 $result = $outgoing_sum;
             } elseif ($result_type === 'all') {
                 $agreed_price = BasketPrice::where('price_id', $price_id)
+                    ->whereHas('basket.order', function ($query) use ($branch_id) {
+                        $query->where('branch_id', $branch_id);
+                    })
                     ->whereDate('created_at', $currentDate)
-                    // ->where('branch_id', $branch_id)
                     ->sum('agreed_price');
+
                 $price_come = BasketPrice::where('price_id', $price_id)
+                    ->whereHas('basket.order', function ($query) use ($branch_id) {
+                        $query->where('branch_id', $branch_id);
+                    })
                     ->whereDate('created_at', $currentDate)
-                    // ->where('branch_id', $branch_id)
                     ->sum('price_come');
                 $result = $agreed_price - $price_come - $outgoing_sum;
             }
@@ -103,7 +116,7 @@ class StatisticController extends Controller
     }
 
 
-    private function calculateMonthlyData($year, $month, $price_id, $result_type, $month_names_uzbek)
+    private function calculateMonthlyData($year, $month, $price_id, $result_type, $month_names_uzbek, $branch_id)
     {
         // Initialize monthly data array
         $monthly_data = [];
@@ -113,12 +126,19 @@ class StatisticController extends Controller
         $end_date = $start_date->copy()->endOfMonth();
 
         // Calculate the income and outgoing sums for the month
-        $income_sum = OrderPrice::where('price_id', $price_id)
+        $income_sum = Order::where('branch_id', $branch_id)
             ->whereBetween('created_at', [$start_date, $end_date])
-            ->sum('price');
+            ->with(['order_price' => function ($query) use ($price_id) {
+                $query->where('price_id', $price_id);
+            }])
+            ->get()
+            ->sum(function ($order) {
+                return $order->order_price->sum('price');
+            });
 
         $outgoing_sum = Expence::where('price_id', $price_id)
             ->whereBetween('created_at', [$start_date, $end_date])
+            ->where('branch_id', $branch_id)
             ->sum('cost');
 
         // Determine the result based on the result_type parameter
@@ -129,9 +149,16 @@ class StatisticController extends Controller
             $result = $outgoing_sum;
         } elseif ($result_type === 'all') {
             $agreed_price = BasketPrice::where('price_id', $price_id)
+                ->whereHas('basket.order', function ($query) use ($branch_id) {
+                    $query->where('branch_id', $branch_id);
+                })
                 ->whereBetween('created_at', [$start_date, $end_date])
                 ->sum('agreed_price');
+
             $price_come = BasketPrice::where('price_id', $price_id)
+                ->whereHas('basket.order', function ($query) use ($branch_id) {
+                    $query->where('branch_id', $branch_id);
+                })
                 ->whereBetween('created_at', [$start_date, $end_date])
                 ->sum('price_come');
             $result = $agreed_price - $price_come - $outgoing_sum;
@@ -300,22 +327,6 @@ class StatisticController extends Controller
     }
 
     private function queryReturnedByPrice($date_start, $date_finish, $orderBy, $limit, $branch_id = null)
-    {
-        $returnedByUserByPrice = User::select('name')
-            ->selectRaw('(SELECT SUM(cost) FROM returned_stores WHERE price_id = 1 AND user_id = users.id AND created_at BETWEEN ? AND ?) as total_sum', [$date_start, $date_finish])
-            ->selectRaw('(SELECT SUM(cost) FROM returned_stores WHERE price_id = 2 AND user_id = users.id AND created_at BETWEEN ? AND ?) as total_dollar', [$date_start, $date_finish])
-            ->orderBy('total_sum', $orderBy)
-            ->orderBy('total_dollar', $orderBy)
-            ->limit($limit);
-
-        if ($branch_id !== null) {
-            $returnedByUserByPrice->where('branch_id', $branch_id);
-        }
-
-        return $returnedByUserByPrice->get();
-    }
-
-    private function queryCalcStat($date_start, $date_finish, $orderBy, $limit, $branch_id = null)
     {
         $returnedByUserByPrice = User::select('name')
             ->selectRaw('(SELECT SUM(cost) FROM returned_stores WHERE price_id = 1 AND user_id = users.id AND created_at BETWEEN ? AND ?) as total_sum', [$date_start, $date_finish])
