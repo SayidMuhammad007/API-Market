@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BasketPrice;
 use App\Models\Customer;
 use App\Models\Expence;
+use App\Models\Order;
 use App\Models\OrderPrice;
 use App\Models\Store;
 use App\Models\User;
@@ -21,6 +22,7 @@ class StatisticController extends Controller
         $price_id = $request->filled('price_id') ? $request->input('price_id') : 1;
         $result_type = $request->filled('result_type') ? $request->input('result_type') : 'income';
         $month = $request->filled('month') ? $request->input('month') : 0;
+        $branch_id = $request->filled('branch_id') ? $request->input('branch_id') : 0;
 
         // Define month names in Uzbek
         $month_names_uzbek = [
@@ -33,7 +35,7 @@ class StatisticController extends Controller
 
         // Check if specific month is requested
         if ($month > 0) {
-            $data = $this->calculateDailyData($year, $month, $price_id, $result_type, $month_names_uzbek);
+            $data = $this->calculateDailyData($year, $month, $price_id, $result_type, $branch_id);
         } else {
             // Calculate data for each month of the year
             for ($month = 1; $month <= 12; $month++) {
@@ -47,7 +49,7 @@ class StatisticController extends Controller
         ]);
     }
 
-    private function calculateDailyData($year, $month, $price_id, $result_type, $month_names_uzbek)
+    private function calculateDailyData($year, $month, $price_id, $result_type, $branch_id)
     {
         // Initialize daily data array
         $daily_data = [];
@@ -61,12 +63,12 @@ class StatisticController extends Controller
             $currentDate = Carbon::createFromDate($year, $month, $day)->toDateString();
 
             // Calculate the income and outgoing sums for the day
-            $income_sum = OrderPrice::where('price_id', $price_id)
-                ->whereDate('created_at', $currentDate)
-                ->sum('price');
+            $income_sum = Order::where('branch_id', $branch_id);
+
 
             $outgoing_sum = Expence::where('price_id', $price_id)
                 ->whereDate('created_at', $currentDate)
+                ->where('branch_id', $branch_id)
                 ->sum('cost');
 
             // Determine the result based on the result_type parameter
@@ -78,9 +80,11 @@ class StatisticController extends Controller
             } elseif ($result_type === 'all') {
                 $agreed_price = BasketPrice::where('price_id', $price_id)
                     ->whereDate('created_at', $currentDate)
+                    // ->where('branch_id', $branch_id)
                     ->sum('agreed_price');
                 $price_come = BasketPrice::where('price_id', $price_id)
                     ->whereDate('created_at', $currentDate)
+                    // ->where('branch_id', $branch_id)
                     ->sum('price_come');
                 $result = $agreed_price - $price_come - $outgoing_sum;
             }
@@ -157,40 +161,54 @@ class StatisticController extends Controller
         // Get request parameters
         $date_start = $request->filled('date_start') ? $request->input('date_start') : '2023-01-01';
         $date_finish = $request->filled('date_finish') ? $request->input('date_finish') : Carbon::now()->toDateString();
+        $type = $request->filled('type') ? $request->input('type') : "stores";
 
-        // ************************ start product stat 
-        // Query most sold products
-        $stores_more_selled = $this->queryStores($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
+        if ($type == "stores") {
+            // ************************ start product stat 
+            // Query most sold products
+            $stores_more_selled = $this->queryStores($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
 
-        // Query least sold products
-        $stores_less_selled = $this->queryStores($date_start, $date_finish, 'asc', 10, $request->input('branch_id'));
-        // ************************ end product stat 
+            // Query least sold products
+            $stores_less_selled = $this->queryStores($date_start, $date_finish, 'asc', 10, $request->input('branch_id'));
+            // ************************ end product stat 
 
-        // ************************ start customer stat
-        $customers = $this->queryCustomers($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
-        $customers_by_price = $this->queryCustomersByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
-        // ************************ end customer stat
+            return response()->json([
+                'stores_more_selled' => $stores_more_selled,
+                'stores_less_selled' => $stores_less_selled,
+            ]);
+        } else if ($type == "customers") {
+            // ************************ start customer stat
+            $customers = $this->queryCustomers($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
+            $customers_by_price = $this->queryCustomersByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
+            // ************************ end customer stat
 
-        // ************************ start user stat
-        $users = $this->queryUsers($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
-        $users_by_price = $this->queryUsersByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
-        // ************************ end user stat
+            return response()->json([
+                'customers' => $customers,
+                'customers_by_price' => $customers_by_price,
+            ]);
+        } else if ($type == "users") {
+            // ************************ start user stat
+            $users = $this->queryUsers($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
+            $users_by_price = $this->queryUsersByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
+            // ************************ end user stat
 
-        // ************************ start returned stat
-        $users_returned = $this->queryReturnedByUser($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
-        $users_returned_by_price = $this->queryReturnedByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
-        // ************************ end returned stat
 
-        return response()->json([
-            'stores_more_selled' => $stores_more_selled,
-            'stores_less_selled' => $stores_less_selled,
-            'customers' => $customers,
-            'customers_by_price' => $customers_by_price,
-            'users' => $users,
-            'users_by_price' => $users_by_price,
-            'users_returned' => $users_returned,
-            'users_returned_by_price' => $users_returned_by_price,
-        ]);
+            return response()->json([
+                'users' => $users,
+                'users_by_price' => $users_by_price,
+            ]);
+        } else if ($type == "users_returned") {
+
+            // ************************ start returned stat
+            $users_returned = $this->queryReturnedByUser($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
+            $users_returned_by_price = $this->queryReturnedByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
+            // ************************ end returned stat
+
+            return response()->json([
+                'users_returned' => $users_returned,
+                'users_returned_by_price' => $users_returned_by_price,
+            ]);
+        }
     }
 
     private function queryStores($date_start, $date_finish, $orderBy, $limit, $branch_id = null)
