@@ -40,12 +40,13 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $orderController = new OrderController();
-        list($data, $dollar, $sum) = $orderController->showOrderData($order);
+        list($data, $dollar, $sum, $reduced_price) = $orderController->showOrderData($order);
         return response()->json([
             'data' => $data,
             'total' => [
                 'dollar' => $dollar,
                 'sum' => $sum,
+                "reduced_price" => $reduced_price
             ],
         ]);
     }
@@ -78,8 +79,15 @@ class OrderController extends Controller
         $result = DB::table('order_prices')
             ->selectRaw('price_id, SUM(price) as total')
             ->where('order_id', $order->id)
+            ->where('type_id', "!=", 5)
             ->whereIn('price_id', [1, 2])
             ->groupBy('price_id')
+            ->get();
+
+        $reduced_price = DB::table('order_prices')
+            ->selectRaw('price_id, SUM(price) as total')
+            ->where('order_id', $order->id)
+            ->where('type_id', "=", 5)
             ->get();
 
         $sumTotal = 0;
@@ -104,6 +112,6 @@ class OrderController extends Controller
         }
 
         // Load related data and return along with calculated totals
-        return [$order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']), $dollarTotal, $sumTotal];
+        return [$order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']), $dollarTotal, $sumTotal, $reduced_price];
     }
 }
