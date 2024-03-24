@@ -87,8 +87,10 @@ class OrderController extends Controller
         $reduced_price = DB::table('order_prices')
             ->selectRaw('price_id, SUM(price) as total')
             ->where('order_id', $order->id)
-            ->where('type_id', "=", 5)
+            ->where('type_id', 5)
+            ->groupBy('price_id')
             ->get();
+
 
         $sumTotal = 0;
         $dollarTotal = 0;
