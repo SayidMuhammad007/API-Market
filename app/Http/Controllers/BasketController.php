@@ -189,7 +189,7 @@ class BasketController extends Controller
             list($inUzs, $inDollar) = $this->calculate($user);
 
             // If both UZS and USD are zero, update basket and order status
-            if ($inUzs <= 0 && $inDollar <= 0) {
+            if ($inUzs <= 100 && $inDollar <= 0.01) {
                 $user->baskets()->where('status', '0')->update(['status' => 1]);
                 $order->update(['status' => 0]);
             }
