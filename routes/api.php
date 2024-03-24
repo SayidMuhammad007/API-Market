@@ -10,6 +10,7 @@ use App\Http\Controllers\ExpenceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PriceController;
 use App\Http\Controllers\ReturnedStoreController;
+use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
@@ -121,4 +122,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Returned routes
     Route::get('/returned', [ReturnedStoreController::class, 'index']);
     Route::post('/return', [ReturnedStoreController::class, 'store']);
+
+    // Statistics routes
+    Route::get('/statistics', [StatisticController::class,'index']);
+    Route::get('/statistics/report', [StatisticController::class,'calc']);
 });
