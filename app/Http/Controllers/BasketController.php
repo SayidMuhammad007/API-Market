@@ -166,13 +166,6 @@ class BasketController extends Controller
             foreach ($basket as $test) {
                 $test->update(['order_id' => $order->id]);
             }
-            if ($reduced_price > 0) {
-                $order->order_price()->create([
-                    'price_id' => $item['price_id'],
-                    'type_id' => $item['type_id'],
-                    'price' => -$reduced_price,
-                ]);
-            }
 
             // Add order price
             $order->order_price()->create([
