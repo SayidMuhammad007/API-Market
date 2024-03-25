@@ -68,7 +68,10 @@ class StatisticController extends Controller
                     $query->where('price_id', $price_id);
                 }])
                 ->get()
-                ->sum(function ($order) {
+                ->sum(function ($order) use ($price_id) {
+                    if ($price_id == 2) {
+                        return $order->order_price->sum('price') * $order->dollar;
+                    }
                     return $order->order_price->sum('price');
                 });
 

@@ -159,6 +159,7 @@ class BasketController extends Controller
             $order = $basket->order ?? Order::create([
                 'branch_id' => $user->branch_id,
                 'user_id' => $user->id,
+                'dollar' => $dollar,
                 'customer_id' => $item['customer_id'] ?? null,
                 'status' => 1,
             ]);
