@@ -131,6 +131,6 @@ class BranchController extends Controller
                 }
             }
         }
-        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('id', auth()->user()->branch_id)->paginate(20), 201);
+        return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->paginate(20), 201);
     }
 }
