@@ -69,6 +69,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/company/{company}', [CompanyController::class, 'show']);
     Route::post('/company/pay/{company}', [CompanyController::class, 'pay']);
     Route::post('/company/debt/{company}', [CompanyController::class, 'debt']);
+    Route::post('/company/debt/{company}/update', [CompanyController::class, 'updateDebt']);
+    Route::post('/company/debt/{company}/delete', [CompanyController::class, 'deleteDebt']);
     Route::post('/company', [CompanyController::class, 'store']);
     Route::delete('/company/{company}', [CompanyController::class, 'destroy']);
 
@@ -96,6 +98,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/customer', [CustomerController::class, 'store']);
     Route::post('/customer/{customer}', [CustomerController::class, 'pay']);
     Route::post('/customer/debt/{customer}', [CustomerController::class, 'addDebt']);
+    Route::post('/customer/debt/{customer}/update', [CustomerController::class, 'updateDebt']);
+    Route::post('/customer/debt/{customer}/delete', [CustomerController::class, 'deleteDebt']);
     Route::delete('/customer/{customer}', [CustomerController::class, 'destroy']);
 
     // Basket routes

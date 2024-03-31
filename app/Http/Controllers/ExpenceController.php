@@ -14,9 +14,9 @@ class ExpenceController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1);
-
-        // Check if search query parameter is provided
+        $query = Expence::with(['type', 'price', 'user', 'branch'])
+            ->where('status', 1)
+            ->where('branch_id', auth()->user()->branch_id);
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where(function ($query) use ($searchTerm) {
@@ -36,6 +36,7 @@ class ExpenceController extends Controller
 
         return response()->json($expences);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -57,7 +58,7 @@ class ExpenceController extends Controller
 
         Expence::create($expenceData);
 
-        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->paginate(20));
+        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->where('branch_id', auth()->user()->branch_id)->paginate(20));
     }
 
     /**
@@ -75,7 +76,7 @@ class ExpenceController extends Controller
     {
         $expence->update($request->all());
 
-        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->paginate(20));
+        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->paginate(20));
     }
 
 
@@ -87,6 +88,6 @@ class ExpenceController extends Controller
         $expence->update([
             'status' => 0,
         ]);
-        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('status', 1)->paginate(20));
+        return response()->json(Expence::with(['type', 'price', 'user', 'branch'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->paginate(20));
     }
 }

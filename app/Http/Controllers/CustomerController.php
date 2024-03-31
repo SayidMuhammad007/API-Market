@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AddDebtRequest;
 use App\Http\Requests\PayCustomerRequest;
 use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateDebtRequest;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\CustomerLog;
@@ -201,6 +202,34 @@ class CustomerController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Debt added successfully'
+        ]);
+    }
+
+    public function updateDebt(Customer $customer, UpdateDebtRequest $request)
+    {
+        CustomerLog::where('id', $request->debt_id)->update([
+            'price_id' => $request->price_id,
+            'comment' => $request->comment,
+            'price' => $request->price,
+        ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Debt updated successfully'
+        ]);
+    }
+
+    public function deleteDebt(Customer $customer, UpdateDebtRequest $request)
+    {
+        $findLog = CustomerLog::where('id', $request->debt_id)->first();
+        if (!$findLog->exists()) {
+            return response()->json([
+                'error' => 'Debt not found'
+            ], 404);
+        }
+        $findLog->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Debt deleted successfully'
         ]);
     }
 }

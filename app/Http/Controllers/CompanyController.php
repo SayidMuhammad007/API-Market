@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\DebtCompanyRequest;
 use App\Http\Requests\PayCompanyRequest;
 use App\Http\Requests\StoreCompanyRequest;
+use App\Http\Requests\UpdateDebtCompanyRequest;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Price;
@@ -19,7 +20,7 @@ class CompanyController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Company::where('branch_id', $user->id);
+        $query = Company::where('branch_id', $user->branch_id);
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where('name', 'like', "%$$searchTerm%");
@@ -53,7 +54,7 @@ class CompanyController extends Controller
         // Create the company
         Company::create($request->all());
         $user = auth()->user();
-        $customers = Company::where('branch_id', $user->id)->paginate(10);
+        $customers = Company::where('branch_id', $user->branch_id)->paginate(10);
         return response()->json($customers);
     }
 
@@ -149,6 +150,41 @@ class CompanyController extends Controller
             'branch_id' => $company->branch_id,
         ]);
 
+        list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
+        return response()->json([
+            'data' => $data,
+            'debts_sum' => $debts_sum,
+            'debts_dollar' => $debts_dollar
+        ]);
+    }
+
+    public function updateDebt(UpdateDebtCompanyRequest $request, Company $company)
+    {
+        $company->companyLog()->where('id', $request->debt_id)->update([
+            'price_id' => $request->price_id,
+            'comment' => $request->comment,
+            'price' => $request->price,
+            'branch_id' => $company->branch_id,
+        ]);
+
+        list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
+        return response()->json([
+            'data' => $data,
+            'debts_sum' => $debts_sum,
+            'debts_dollar' => $debts_dollar
+        ]);
+    }
+
+    public function deleteDebt(UpdateDebtCompanyRequest $request, Company $company)
+    {
+        $findLog = $company->companyLog()->where('id', $request->debt_id)->first();
+        if(!$findLog){
+            return response()->json([
+                'status' => false,
+                'error' => 'Debt not found'
+            ]);
+        }
+        $findLog->delete();
         list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
         return response()->json([
             'data' => $data,

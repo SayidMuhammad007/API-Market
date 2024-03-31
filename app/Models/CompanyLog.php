@@ -14,7 +14,8 @@ class CompanyLog extends Model
         'branch_id',
         'price_id',
         'type_id',
-        'price'
+        'price',
+        'comment'
     ];
 
     public function company(): BelongsTo
