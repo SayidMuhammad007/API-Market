@@ -23,6 +23,7 @@ class User extends Authenticatable
         'name',
         'phone',
         'password',
+        'role',
         'branch_id',
     ];
 
@@ -45,7 +46,8 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function UserAccess(){
+    public function UserAccess()
+    {
         return $this->hasMany(UserAccess::class);
     }
 

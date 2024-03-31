@@ -71,6 +71,7 @@ class UserController extends Controller
         $newUser = User::create([
             'name' => $request->name,
             'phone' => $request->phone,
+            'role' => $request->role,
             'branch_id' => $request->branch_id,
             'password' => Hash::make($request->password),
         ]);
@@ -165,6 +166,7 @@ class UserController extends Controller
         $user->update([
             'name' => $request->has('name') ? $request->name : $user->name,
             'phone' => $request->has('phone') ? $request->phone : $user->phone,
+            'role' => $request->has('role') ? $request->role : $user->role,
             'branch_id' => $request->has('branch_id') ? $request->branch_id : $user->branch_id,
             'password' => $request->has('password') ? Hash::make($request->password) : $user->password,
         ]);
