@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     $token = $user->createToken('auth_token')->plainTextToken;
 
     return response()->json([
-        'user' => $user,
+        'user' => $user->load('UserAccess.Access:id,name'),
         'token' => $token,
     ]);
 });
@@ -128,6 +128,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/return', [ReturnedStoreController::class, 'store']);
 
     // Statistics routes
-    Route::get('/statistics', [StatisticController::class,'index']);
-    Route::get('/statistics/report', [StatisticController::class,'calc']);
+    Route::get('/statistics', [StatisticController::class, 'index']);
+    Route::get('/statistics/report', [StatisticController::class, 'calc']);
 });
