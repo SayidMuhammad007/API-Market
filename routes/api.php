@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     $user = $request->user();
 
-    $token = $user->createToken('auth_token')->plainTextToken;
+    $token = $user->createToken('auth_token', ['expires' => now()->addDay()])->plainTextToken;
 
     return response()->json([
         'user' => $user->load('UserAccess.Access:id,name'),

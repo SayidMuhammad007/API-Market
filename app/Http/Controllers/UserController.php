@@ -106,7 +106,7 @@ class UserController extends Controller
                 'message' => 'Invalid login credentials',
             ], 400);
         } else {
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_token', ['expires' => now()->addDay()])->plainTextToken;
             return response()->json([
                 'success' => true,
             'user' => $user->load('UserAccess.Access:id,name'),
