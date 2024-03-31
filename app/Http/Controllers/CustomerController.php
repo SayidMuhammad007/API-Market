@@ -142,29 +142,31 @@ class CustomerController extends Controller
 
     public function pay(PayCustomerRequest $request, Customer $customer)
     {
-        // check type
-        $type = Type::where('id', $request->type_id)->first();
-        if (!$type) {
-            return response()->json([
-                'error' => 'Type not found'
+        foreach ($request->payments as $payment) {
+            // check type
+            $type = Type::where('id', $payment['type_id'])->first();
+            if (!$type) {
+                return response()->json([
+                    'error' => 'Type not found'
+                ]);
+            }
+
+            // check price
+            $price = Price::where('id', $payment['price_id'])->first();
+            if (!$price) {
+                return response()->json([
+                    'error' => 'Price not found'
+                ]);
+            }
+
+            $customer->customerLog()->create([
+                'type_id' => $payment['type_id'],
+                'price_id' => $payment['price_id'],
+                'comment' => $payment['comment'],
+                'price' => $payment['price'],
+                'branch_id' => $customer->branch_id,
             ]);
         }
-
-        // check price
-        $price = Price::where('id', $request->price_id)->first();
-        if (!$price) {
-            return response()->json([
-                'error' => 'Price not found'
-            ]);
-        }
-
-        $customer->customerLog()->create([
-            'type_id' => $request->type_id,
-            'price_id' => $request->price_id,
-            'comment' => $request->comment,
-            'price' => $request->price,
-            'branch_id' => $customer->branch_id,
-        ]);
         list($data, $dollar, $sum) = $this->calculate($customer);
         return response()->json([
             'data' => $data,
