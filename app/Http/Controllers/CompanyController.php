@@ -100,29 +100,31 @@ class CompanyController extends Controller
 
     public function pay(PayCompanyRequest $request, Company $company)
     {
-        // check type
-        $type = Type::where('id', $request->type_id)->first();
-        if (!$type) {
-            return response()->json([
-                'error' => 'Type not found'
+        foreach ($request->payments as $payment) {
+            // check type
+            $type = Type::where('id', $payment['type_id'])->first();
+            if (!$type) {
+                return response()->json([
+                    'error' => 'Type not found'
+                ]);
+            }
+
+            // check price
+            $price = Price::where('id', $payment['price_id'])->first();
+            if (!$price) {
+                return response()->json([
+                    'error' => 'Price not found'
+                ]);
+            }
+
+            $company->companyLog()->create([
+                'type_id' => $payment['type_id'],
+                'price_id' => $payment['price_id'],
+                'comment' => $payment['comment'],
+                'price' => $payment['price'],
+                'branch_id' => $company->branch_id,
             ]);
         }
-
-        // check price
-        $price = Price::where('id', $request->price_id)->first();
-        if (!$price) {
-            return response()->json([
-                'error' => 'Price not found'
-            ]);
-        }
-
-        $company->companyLog()->create([
-            'type_id' => $request->type_id,
-            'price_id' => $request->price_id,
-            'comment' => $request->comment,
-            'price' => $request->price,
-            'branch_id' => $company->branch_id,
-        ]);
 
         list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
         return response()->json([
@@ -178,7 +180,7 @@ class CompanyController extends Controller
     public function deleteDebt(UpdateDebtCompanyRequest $request, Company $company)
     {
         $findLog = $company->companyLog()->where('id', $request->debt_id)->first();
-        if(!$findLog){
+        if (!$findLog) {
             return response()->json([
                 'status' => false,
                 'error' => 'Debt not found'

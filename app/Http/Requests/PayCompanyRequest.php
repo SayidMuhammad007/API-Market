@@ -22,9 +22,7 @@ class PayCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'price_id' => 'required',
-            'type_id' => 'required',
-            'price' => 'required',
+            'payments' => 'required|array',
         ];
     }
 }
