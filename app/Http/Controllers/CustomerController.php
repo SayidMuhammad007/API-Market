@@ -52,7 +52,7 @@ class CustomerController extends Controller
         Customer::create($request->all());
         return response()->json([
             'success' => true,
-            'message' => 'Customer added successfully'
+            'message' => 'Mijoz muvaffaqiyatli saqlandi!'
         ]);
     }
 
@@ -110,7 +110,17 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        //
+        $branch = Branch::where('id', $request->branch_id)->first();
+        if (!$branch) {
+            return response()->json([
+                'message' => 'Branch not found',
+            ], 404);
+        }
+        $customer->update($request->all());
+        return response()->json([
+            'success' => true,
+            'message' => 'Mijoz muvaffaqiyatli o`zgartirildi!'
+        ]);
     }
 
     /**

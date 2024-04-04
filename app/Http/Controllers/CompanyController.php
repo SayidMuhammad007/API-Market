@@ -77,8 +77,21 @@ class CompanyController extends Controller
      */
     public function update(Request $request, Company $company)
     {
-        //
+        // Check if the branch exists
+        if (!Branch::where('id', $request->branch_id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Noto`g`ri brench tanlandi!',
+            ], 400);
+        }
+        // Update the company
+        $company->update($request->all());
+        // Fetch updated list of customers
+        $user = auth()->user();
+        $customers = Company::where('branch_id', $user->branch_id)->paginate(10);
+        return response()->json($customers);
     }
+
 
     /**
      * Remove the specified resource from storage.
