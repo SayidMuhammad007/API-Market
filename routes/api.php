@@ -96,7 +96,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Customer routes
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::get('/customer/{customer}', [CustomerController::class, 'show']);
-    Route::post('/customer/update/{company}', [CompanyController::class, 'update']);
+    Route::post('/customer/update/{company}', [CustomerController::class, 'update']);
     Route::post('/customer', [CustomerController::class, 'store']);
     Route::post('/customer/{customer}', [CustomerController::class, 'pay']);
     Route::post('/customer/debt/{customer}', [CustomerController::class, 'addDebt']);
