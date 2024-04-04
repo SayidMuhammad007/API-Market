@@ -15,7 +15,7 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $query = auth()->user()->orders()->with(['customer', 'user'])->where('status', 0)->orderBy('id', 'desc');
+        $query = Order::where('branch_id', auth()->user()->branch_id)->with(['customer', 'user'])->where('status', 0)->orderBy('id', 'desc');
 
         // Check if search query parameter is provided
         if ($request->has('search')) {

@@ -33,7 +33,7 @@ class CustomerController extends Controller
         }
 
         // Paginate the results
-        $customers = $query->paginate(10);
+        $customers = $query->paginate(1000);
         return response()->json($customers);
     }
 
