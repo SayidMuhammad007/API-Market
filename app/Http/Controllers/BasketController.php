@@ -162,6 +162,7 @@ class BasketController extends Controller
                 'dollar' => $dollar,
                 'customer_id' => $item['customer_id'] ?? null,
                 'status' => 1,
+                'comment' => $item['comment'],
             ]);
             $basket = $user->baskets()->where('status', 0)->get();
             foreach ($basket as $test) {

@@ -17,6 +17,7 @@ class Order extends Model
         'check_id',
         'dollar',
         'status',
+        'comment',
     ];
 
     public function customer(): BelongsTo

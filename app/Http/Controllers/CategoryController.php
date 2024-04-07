@@ -22,7 +22,7 @@ class CategoryController extends Controller
             $query->where('name', 'like', "%$searchTerm%");
         }
         // Paginate the results
-        $categories = $query->paginate($request->input('per_page'));
+        $categories = $query->paginate(1000);
 
         return response()->json($categories);
     }

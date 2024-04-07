@@ -78,7 +78,6 @@ class CompanyController extends Controller
     public function update(Request $request, Company $company)
     {
         $company->update($request->all());
-        // Fetch updated list of customers
         $user = auth()->user();
         $customers = Company::where('branch_id', $user->branch_id)->paginate(10);
         return response()->json($customers);
