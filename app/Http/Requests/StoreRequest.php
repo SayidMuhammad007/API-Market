@@ -30,7 +30,7 @@ class StoreRequest extends FormRequest
             'branch_id' => 'required|integer',
             'price_come' => 'required|numeric',
             'price_sell' => 'required|numeric',
-            'quantity' => 'required|integer',
+            'quantity' => 'required',
         ];
     }
 
