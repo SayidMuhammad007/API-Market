@@ -154,7 +154,7 @@ class BasketController extends Controller
                     'message' => 'Dollarda qiymat oshib ketdi'
                 ], 400);
             }
-            if ($item('type_id') !== 5) {
+            if ($item['type_id'] !== 5) {
                 // Check if basket has an associated order, if not, create a new order
                 $order = $basket->order ?? Order::create([
                     'branch_id' => $user->branch_id,
