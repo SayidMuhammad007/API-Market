@@ -154,20 +154,22 @@ class BasketController extends Controller
                     'message' => 'Dollarda qiymat oshib ketdi'
                 ], 400);
             }
-
-            // Check if basket has an associated order, if not, create a new order
-            $order = $basket->order ?? Order::create([
-                'branch_id' => $user->branch_id,
-                'user_id' => $user->id,
-                'dollar' => $dollar,
-                'customer_id' => $item['customer_id'] ?? null,
-                'status' => 1,
-                'comment' => $item['comment'] ?? null,
-            ]);
-            $basket = $user->baskets()->where('status', 0)->get();
-            foreach ($basket as $test) {
-                $test->update(['order_id' => $order->id]);
+            if ($item('type_id') !== 5) {
+                // Check if basket has an associated order, if not, create a new order
+                $order = $basket->order ?? Order::create([
+                    'branch_id' => $user->branch_id,
+                    'user_id' => $user->id,
+                    'dollar' => $dollar,
+                    'customer_id' => $item['customer_id'] ?? null,
+                    'status' => 1,
+                    'comment' => $item['comment'] ?? null,
+                ]);
+                $basket = $user->baskets()->where('status', 0)->get();
+                foreach ($basket as $test) {
+                    $test->update(['order_id' => $order->id]);
+                }
             }
+
 
             // Add order price
             $order->order_price()->create([
