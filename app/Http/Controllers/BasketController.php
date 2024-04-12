@@ -343,7 +343,6 @@ class BasketController extends Controller
             $query->select('id')
                 ->from('baskets')
                 ->where('status', 0)
-                ->where('type', "!=", 5)
                 ->where('user_id', $user->id);
         })->get();
         // Calculate total sum and total dollar from basket prices
@@ -353,6 +352,7 @@ class BasketController extends Controller
         // Retrieve the user's order with status 1
         $order = Order::where('status', 1)
             ->where('user_id', $user->id)
+            ->where('type', "!=", 5)
             ->with('order_price')
             ->first();
 
