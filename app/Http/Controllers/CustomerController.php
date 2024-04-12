@@ -43,13 +43,14 @@ class CustomerController extends Controller
      */
     public function store(StoreCustomerRequest $request)
     {
-        $branch = Branch::where('id', $request->branch_id)->first();
-        if (!$branch) {
-            return response()->json([
-                'message' => 'Branch not found',
-            ], 404);
-        }
-        Customer::create($request->all());
+        // $branch = Branch::where('id', $request->branch_id)->first();
+        // if (!$branch) {
+        //     return response()->json([
+        //         'message' => 'Branch not found',
+        //     ], 404);
+        // }
+        $data = Customer::create($request->all());
+        $data->update(['branch_id' => auth()->user()->branch_id]);
         return response()->json([
             'success' => true,
             'message' => 'Mijoz muvaffaqiyatli saqlandi!'

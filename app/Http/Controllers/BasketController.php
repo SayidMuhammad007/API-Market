@@ -57,12 +57,12 @@ class BasketController extends Controller
             $user = auth()->user();
             // check product exists
             if (!$product) {
-                return response()->json(['error' => 'Product not found'], 404);
+                return response()->json(['error' => 'Mahsulot topilmadi'], 404);
             }
 
             // check quantity
             if ($item['quantity'] > $product['quantity']) {
-                return response()->json(['error' => 'Insufficient stock. Available quantity: ' . $product->quantity], 400);
+                return response()->json(['error' => 'Omborda buncha mahsulot yo`q. Mavjud: ' . $product->quantity], 400);
             }
             // decrement product quantity
             $product->quantity -= $item['quantity'];
@@ -128,12 +128,12 @@ class BasketController extends Controller
             // Check if type exists
             $type = Type::find($item['type_id']);
             if (!$type) {
-                return response()->json(['error' => 'Type not found'], 404);
+                return response()->json(['error' => 'Pul turi topilmadi'], 404);
             }
             if ($item['customer_id']) {
                 $customer = Customer::find($item['customer_id']);
                 if (!$customer) {
-                    return response()->json(['error' => 'Customer not found'], 404);
+                    return response()->json(['error' => 'Mijoz topilmadi'], 404);
                 }
             }
 
@@ -144,14 +144,14 @@ class BasketController extends Controller
             if ($item['price_id'] == 1 && (float)$item['price'] > (float)$inUzs && !$request->price) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Insufficient UZS'
+                    'message' => 'So`mda qiymat oshib ketdi'
                 ], 400);
             }
 
             if ($item['price_id'] == 2 && $item['price'] > $inDollar && !$request->price) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Insufficient Dollar'
+                    'message' => 'Dollarda qiymat oshib ketdi'
                 ], 400);
             }
 
@@ -256,7 +256,7 @@ class BasketController extends Controller
 
         $product = Store::find($request->product_id);
         if ($request['quantity'] - $basket->quantity > $product['quantity'] && $request['quantity'] != $basket->quantity) {
-            return response()->json(['error' => 'Insufficient stock. Available quantity: ' . $product->quantity], 400);
+            return response()->json(['error' => 'Omborda buncha mahsulot yo`q. Mavjud: ' . $product->quantity], 400);
         }
         // decrement product quantity
         $product->quantity = $product->quantity + $basket->quantity - $request->quantity;
@@ -343,6 +343,7 @@ class BasketController extends Controller
             $query->select('id')
                 ->from('baskets')
                 ->where('status', 0)
+                ->where('type', "!=", 5)
                 ->where('user_id', $user->id);
         })->get();
         // Calculate total sum and total dollar from basket prices
@@ -410,7 +411,7 @@ class BasketController extends Controller
                 ]
             ], 200);
         } else {
-            return response()->json(['error' => 'Basket not found'], 404);
+            return response()->json(['error' => 'Savat topilmadi'], 404);
         }
     }
 
@@ -452,7 +453,7 @@ class BasketController extends Controller
             ], 200);
         }
         return response()->json([
-            'error' => 'Order not found'
+            'error' => 'Buyurtma topilmadi'
         ], 404);
     }
 }
