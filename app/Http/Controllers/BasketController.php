@@ -352,7 +352,6 @@ class BasketController extends Controller
         // Retrieve the user's order with status 1
         $order = Order::where('status', 1)
             ->where('user_id', $user->id)
-            ->where('type_id', "!=", 5)
             ->with('order_price')
             ->first();
 
@@ -362,8 +361,8 @@ class BasketController extends Controller
 
         if ($order) {
             // Retrieve the sum of prices from the order
-            $payed_sum = (float)$order->order_price->where('price_id', 1)->sum('price');
-            $payed_dollar = (float)$order->order_price->where('price_id', 2)->sum('price');
+            $payed_sum = (float)$order->order_price->where('price_id', 1)->where('type_id', "!=", 5)->sum('price');
+            $payed_dollar = (float)$order->order_price->where('price_id', 2)->where('type_id', "!=", 5)->sum('price');
         }
 
         // Calculate values in UZS and USD
