@@ -352,7 +352,7 @@ class BasketController extends Controller
         // Retrieve the user's order with status 1
         $order = Order::where('status', 1)
             ->where('user_id', $user->id)
-            ->where('type', "!=", 5)
+            ->where('type_id', "!=", 5)
             ->with('order_price')
             ->first();
 
