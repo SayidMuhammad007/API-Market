@@ -22,7 +22,8 @@ class CustomerController extends Controller
     {
         $user = auth()->user();
         $query = Customer::where('branch_id', $user->branch_id)
-            ->where('status', 1);
+            ->where('status', 1)
+            ->orderBy('id', 'desc');
 
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
@@ -43,12 +44,6 @@ class CustomerController extends Controller
      */
     public function store(StoreCustomerRequest $request)
     {
-        // $branch = Branch::where('id', $request->branch_id)->first();
-        // if (!$branch) {
-        //     return response()->json([
-        //         'message' => 'Branch not found',
-        //     ], 404);
-        // }
         $data = Customer::create($request->all());
         $data->update(['branch_id' => auth()->user()->branch_id]);
         return response()->json([
@@ -84,12 +79,12 @@ class CustomerController extends Controller
         // Calculate total debts and payments in both currencies
         $debts_sum = $customer->customerLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
         $debts_dollar = $customer->customerLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
-        $payments_dollar = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
+        $payments_dollar = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('uzs');
         $payments_sum = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
 
         // Calculate total debts and payments in soums and dollars
-        $total_sum = $debts_sum - $payments_sum;
-        $total_dollar = $debts_dollar - $payments_dollar;
+        $total_sum = $debts_sum - $payments_sum + $payments_dollar;
+        $total_dollar = $debts_dollar;
 
         // Convert negative totals to positive if necessary
         if ($total_sum < 0) {
@@ -147,6 +142,7 @@ class CustomerController extends Controller
 
     public function pay(PayCustomerRequest $request, Customer $customer)
     {
+        $dollar = Price::where('id', 2)->value('value');
         foreach ($request->payments as $payment) {
             // check type
             $type = Type::where('id', $payment['type_id'])->first();
@@ -170,6 +166,7 @@ class CustomerController extends Controller
                 'comment' => $payment['comment'],
                 'price' => $payment['price'],
                 'branch_id' => $customer->branch_id,
+                'uzs' => $payment['price'] * $dollar,
             ]);
         }
         list($data, $dollar, $sum) = $this->calculate($customer);

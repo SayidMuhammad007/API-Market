@@ -44,7 +44,6 @@ class BasketController extends Controller
         ], 200);
     }
 
-
     /**
      * Store a newly created resource in storage.
      */

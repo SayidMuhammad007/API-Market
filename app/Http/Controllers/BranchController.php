@@ -101,7 +101,8 @@ class BranchController extends Controller
                 'quantity' => $store->quantity - $product['quantity']
             ]);
             $check = Store::where('branch_id', $product['branch_id'])
-                ->where('barcode', $store->product_id)
+                ->where('barcode', $store->barcode)
+                ->where('status', 1)
                 ->first();
 
             if ($check) {

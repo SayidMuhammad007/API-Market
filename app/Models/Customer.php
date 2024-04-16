@@ -14,6 +14,7 @@ class Customer extends Model
         'name',
         'phone',
         'comment',
+        'uzs',
     ];
 
     public function baskets(): HasMany
