@@ -204,7 +204,7 @@ class CustomerController extends Controller
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,
-            'uzs' => $request->price_id == 2 ? number_format((float)$request->price * (float)$dollar, 8) : number_format((float)$request->price_id / (float)$dollar, 8)
+            'uzs' => $request->price_id == 2 ? (number_format((float)$request->price * (float)$dollar, 8)) : (number_format((float)$request->price_id / (float)$dollar, 8))
         ]);
         return response()->json([
             'success' => true,
