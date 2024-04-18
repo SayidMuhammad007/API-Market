@@ -15,7 +15,8 @@ class CustomerLog extends Model
         'type_id',
         'price_id',
         'comment',
-        'price'
+        'price',
+        'uzs'
     ];
 
     public function branch(): BelongsTo

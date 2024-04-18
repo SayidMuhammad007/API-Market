@@ -182,6 +182,7 @@ class CustomerController extends Controller
 
     public function addDebt(Customer $customer, AddDebtRequest $request)
     {
+        $dollar = Price::where('id', 2)->value('value');
         $type = Type::find($request->type_id);
         if (!$type) {
             return response()->json([
@@ -203,6 +204,7 @@ class CustomerController extends Controller
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,
+            'uzs' => $request->price_id == 2 ? $request->price * $dollar : $request->price_id / $dollar,
         ]);
         return response()->json([
             'success' => true,
@@ -212,10 +214,13 @@ class CustomerController extends Controller
 
     public function updateDebt(Customer $customer, UpdateDebtRequest $request)
     {
+        $dollar = Price::where('id', 2)->value('value');
+
         CustomerLog::where('id', $request->debt_id)->update([
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,
+            'uzs' => $request->price_id == 2 ? $request->price * $dollar : $request->price_id / $dollar,
         ]);
         return response()->json([
             'success' => true,
