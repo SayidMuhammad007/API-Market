@@ -77,16 +77,16 @@ class CustomerController extends Controller
             ->get();
 
         // Calculate total debts and payments in both currencies
-        $debts_sum = $customer->customerLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
-        $debts_dollar = $customer->customerLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
+        // $debts_sum = $customer->customerLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
+        // $debts_dollar = $customer->customerLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
         $payments_dollar = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
         $payments_dollar += $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->where('uzs', "!=", null)->sum('uzs');
         $payments_sum = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
         $payments_sum += $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->where('uzs', "!=", null)->sum('uzs');
 
         // Calculate total debts and payments in soums and dollars
-        $total_sum = $debts_sum - $payments_sum;
-        $total_dollar = $debts_dollar - $payments_dollar;
+        // $total_sum = $debts_sum - $payments_sum;
+        // $total_dollar = $debts_dollar - $payments_dollar;
 
         // Convert negative totals to positive if necessary
         // if ($total_sum < 0) {
@@ -96,8 +96,8 @@ class CustomerController extends Controller
         //     $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
         //     $total_dollar = 0;
         // }
-        $all_dollar = $total_dollar + ($total_sum / $dollar);
-        $all_sum = $total_sum + ($total_dollar * $dollar);
+        $all_dollar = $payments_dollar + ($payments_sum / $dollar);
+        $all_sum = $payments_sum + ($payments_dollar * $dollar);
         return [$data, $all_dollar, $all_sum];
     }
 
