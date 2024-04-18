@@ -161,7 +161,7 @@ class CustomerController extends Controller
                 ]);
             }
 
-            $customer->customerLog()->create([
+            $test = $customer->customerLog()->create([
                 'type_id' => $payment['type_id'],
                 'price_id' => $payment['price_id'],
                 'comment' => $payment['comment'],
@@ -169,6 +169,15 @@ class CustomerController extends Controller
                 'branch_id' => $customer->branch_id,
                 'uzs' => $payment['price_id'] == 2 ? (float)$payment['price'] * (float)$dollar : ((float)$payment['price'] / (float)$dollar),
             ]);
+            if ($request->price_id == 2) {
+                $test->update([
+                    'uzs' => (float)$request->price * (float)$dollar
+                ]);
+            } else {
+                $test->update([
+                    'uzs' => (float)$request->price / (float)$dollar
+                ]);
+            }
         }
         list($data, $dollar, $sum) = $this->calculate($customer);
         return response()->json([
@@ -225,12 +234,21 @@ class CustomerController extends Controller
     {
         $dollar = Price::where('id', 2)->value('value');
 
-        CustomerLog::where('id', $request->debt_id)->update([
+        $test = CustomerLog::where('id', $request->debt_id)->update([
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,
             'uzs' => $request->price_id == 2 ? $request->price * $dollar : $request->price_id / $dollar,
         ]);
+        if ($request->price_id == 2) {
+            $test->update([
+                'uzs' => (float)$request->price * (float)$dollar
+            ]);
+        } else {
+            $test->update([
+                'uzs' => (float)$request->price / (float)$dollar
+            ]);
+        }
         return response()->json([
             'success' => true,
             'message' => 'Debt updated successfully'
