@@ -85,8 +85,8 @@ class CustomerController extends Controller
         $payments_sum += $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->where('uzs', "!=", null)->sum('uzs');
 
         // Calculate total debts and payments in soums and dollars
-        $total_sum = $debts_sum - $payments_sum + $payments_dollar;
-        $total_dollar = $debts_dollar;
+        $total_sum = $debts_sum - $payments_sum;
+        $total_dollar = $debts_dollar - $payments_dollar;
 
         // Convert negative totals to positive if necessary
         // if ($total_sum < 0) {
