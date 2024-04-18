@@ -167,7 +167,7 @@ class CustomerController extends Controller
                 'comment' => $payment['comment'],
                 'price' => $payment['price'],
                 'branch_id' => $customer->branch_id,
-                'uzs' => $payment['price_id'] == 2 ? $payment['price'] * $dollar : $payment['price'] / $dollar,
+                'uzs' => $payment['price_id'] == 2 ? $payment['price'] * $dollar : ($payment['price'] / $dollar),
             ]);
         }
         list($data, $dollar, $sum) = $this->calculate($customer);
@@ -204,7 +204,7 @@ class CustomerController extends Controller
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,
-            'uzs' => $request->price_id == 2 ? $request->price * $dollar : $request->price_id / $dollar,
+            'uzs' => $request->price_id == 2 ? $request->price * $dollar : ($request->price_id / $dollar)
         ]);
         return response()->json([
             'success' => true,
