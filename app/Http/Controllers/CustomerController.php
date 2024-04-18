@@ -79,22 +79,23 @@ class CustomerController extends Controller
         // Calculate total debts and payments in both currencies
         $debts_sum = $customer->customerLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
         $debts_dollar = $customer->customerLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
-        $payments_dollar = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('uzs');
+        $payments_dollar = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
+        $payments_dollar += $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->where('uzs', "!=", null)->sum('uzs');
         $payments_sum = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
+        $payments_sum += $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->where('uzs', "!=", null)->sum('uzs');
 
         // Calculate total debts and payments in soums and dollars
         $total_sum = $debts_sum - $payments_sum + $payments_dollar;
         $total_dollar = $debts_dollar;
 
         // Convert negative totals to positive if necessary
-        if ($total_sum < 0) {
-            $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
-            // return response()->json($total_dollar);
-            $total_sum = 0;
-        } else if ($total_dollar < 0) {
-            $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
-            $total_dollar = 0;
-        }
+        // if ($total_sum < 0) {
+        //     $total_dollar -= abs($total_sum) / $dollar;
+        //     $total_sum = 0;
+        // } else if ($total_dollar < 0) {
+        //     $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
+        //     $total_dollar = 0;
+        // }
         $all_dollar = $total_dollar + ($total_sum / $dollar);
         $all_sum = $total_sum + ($total_dollar * $dollar);
         return [$data, $all_dollar, $all_sum];
@@ -166,7 +167,7 @@ class CustomerController extends Controller
                 'comment' => $payment['comment'],
                 'price' => $payment['price'],
                 'branch_id' => $customer->branch_id,
-                'uzs' => $payment['price'] * $dollar,
+                'uzs' => $payment['price_id'] == 2 ? $payment['price'] * $dollar : $payment['price'] / $dollar,
             ]);
         }
         list($data, $dollar, $sum) = $this->calculate($customer);
