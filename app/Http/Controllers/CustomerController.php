@@ -197,15 +197,24 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        CustomerLog::create([
+        $test = CustomerLog::create([
             'branch_id' => auth()->user()->branch_id,
             'customer_id' => $customer->id,
             'type_id' => 4,
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,
-            'uzs' => $request->price_id == 2 ? (number_format((float)$request->price * (float)$dollar, 8)) : (number_format((float)$request->price_id / (float)$dollar, 8))
         ]);
+        if ($request->price_id == 2) {
+            $test->update([
+                'uzs' => (float)$request->price * (float)$dollar
+            ]);
+        } else {
+            $test->update([
+                'uzs' => (float)$request->price / (float)$dollar
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Debt added successfully'
