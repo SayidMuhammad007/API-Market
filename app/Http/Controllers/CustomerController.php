@@ -44,6 +44,12 @@ class CustomerController extends Controller
      */
     public function store(StoreCustomerRequest $request)
     {
+        // $branch = Branch::where('id', $request->branch_id)->first();
+        // if (!$branch) {
+        //     return response()->json([
+        //         'message' => 'Branch not found',
+        //     ], 404);
+        // }
         $data = Customer::create($request->all());
         $data->update(['branch_id' => auth()->user()->branch_id]);
         return response()->json([
@@ -78,39 +84,23 @@ class CustomerController extends Controller
 
         // Calculate total debts and payments in both currencies
         $debts_sum = $customer->customerLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
-        $debts_sum += $customer->customerLog()->where('type_id', 4)->where('price_id', 2)->where('uzs', "!=", null)->sum('uzs');
         $debts_dollar = $customer->customerLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
-        $debts_dollar += $customer->customerLog()->where('type_id', 4)->where('price_id', 1)->where('uzs', "!=", null)->sum('uzs');
-
-
-
         $payments_dollar = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
-        $payments_dollar += $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->where('uzs', "!=", null)->sum('uzs');
         $payments_sum = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
-        $payments_sum += $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->where('uzs', "!=", null)->sum('uzs');
 
         // Calculate total debts and payments in soums and dollars
         $total_sum = $debts_sum - $payments_sum;
-        if ($debts_dollar <= 0) {
-            $total_dollar = 0;
-        } else {
-            $total_dollar = $debts_dollar - $payments_dollar;
-        }
-
-        if ($debts_sum <= 0) {
-            $debts_sum = 0;
-        } else {
-            $debts_sum = $debts_sum - $payments_sum;
-        }
+        $total_dollar = $debts_dollar - $payments_dollar;
 
         // Convert negative totals to positive if necessary
-        // if ($total_sum < 0) {
-        //     $total_dollar -= abs($total_sum) / $dollar;
-        //     $total_sum = 0;
-        // } else if ($total_dollar < 0) {
-        //     $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
-        //     $total_dollar = 0;
-        // }
+        if ($total_sum < 0) {
+            $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
+            // return response()->json($total_dollar);
+            $total_sum = 0;
+        } else if ($total_dollar < 0) {
+            $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
+            $total_dollar = 0;
+        }
         $all_dollar = $total_dollar + ($total_sum / $dollar);
         $all_sum = $total_sum + ($total_dollar * $dollar);
         return [$data, $all_dollar, $all_sum];
@@ -158,7 +148,6 @@ class CustomerController extends Controller
 
     public function pay(PayCustomerRequest $request, Customer $customer)
     {
-        $dollar = Price::where('id', 2)->value('value');
         foreach ($request->payments as $payment) {
             // check type
             $type = Type::where('id', $payment['type_id'])->first();
@@ -176,23 +165,13 @@ class CustomerController extends Controller
                 ]);
             }
 
-            $test = $customer->customerLog()->create([
+            $customer->customerLog()->create([
                 'type_id' => $payment['type_id'],
                 'price_id' => $payment['price_id'],
                 'comment' => $payment['comment'],
                 'price' => $payment['price'],
                 'branch_id' => $customer->branch_id,
-                'uzs' => $payment['price_id'] == 2 ? (float)$payment['price'] * (float)$dollar : ((float)$payment['price'] / (float)$dollar),
             ]);
-            if ($request->price_id == 2) {
-                $test->update([
-                    'uzs' => (float)$request->price * (float)$dollar
-                ]);
-            } else {
-                $test->update([
-                    'uzs' => (float)$request->price / (float)$dollar
-                ]);
-            }
         }
         list($data, $dollar, $sum) = $this->calculate($customer);
         return response()->json([
@@ -206,7 +185,6 @@ class CustomerController extends Controller
 
     public function addDebt(Customer $customer, AddDebtRequest $request)
     {
-        $dollar = Price::where('id', 2)->value('value');
         $type = Type::find($request->type_id);
         if (!$type) {
             return response()->json([
@@ -221,7 +199,7 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $test = CustomerLog::create([
+        CustomerLog::create([
             'branch_id' => auth()->user()->branch_id,
             'customer_id' => $customer->id,
             'type_id' => 4,
@@ -229,16 +207,6 @@ class CustomerController extends Controller
             'comment' => $request->comment,
             'price' => $request->price,
         ]);
-        if ($request->price_id == 2) {
-            $test->update([
-                'uzs' => (float)$request->price * (float)$dollar
-            ]);
-        } else {
-            $test->update([
-                'uzs' => (float)$request->price / (float)$dollar
-            ]);
-        }
-
         return response()->json([
             'success' => true,
             'message' => 'Debt added successfully'
@@ -247,23 +215,11 @@ class CustomerController extends Controller
 
     public function updateDebt(Customer $customer, UpdateDebtRequest $request)
     {
-        $dollar = Price::where('id', 2)->value('value');
-
-        $test = CustomerLog::where('id', $request->debt_id)->update([
+        CustomerLog::where('id', $request->debt_id)->update([
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,
-            'uzs' => $request->price_id == 2 ? $request->price * $dollar : $request->price_id / $dollar,
         ]);
-        if ($request->price_id == 2) {
-            $test->update([
-                'uzs' => (float)$request->price * (float)$dollar
-            ]);
-        } else {
-            $test->update([
-                'uzs' => (float)$request->price / (float)$dollar
-            ]);
-        }
         return response()->json([
             'success' => true,
             'message' => 'Debt updated successfully'
