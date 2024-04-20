@@ -103,6 +103,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/customer/debt/{customer}/update', [CustomerController::class, 'updateDebt']);
     Route::post('/customer/debt/{customer}/delete', [CustomerController::class, 'deleteDebt']);
     Route::delete('/customer/{customer}', [CustomerController::class, 'destroy']);
+    Route::get('/customer/{customer}/products', [CustomerController::class, 'showCustomerProduct']);
 
     // Basket routes
     Route::get('/baskets', [BasketController::class, 'index']);

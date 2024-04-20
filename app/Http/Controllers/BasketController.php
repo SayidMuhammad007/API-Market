@@ -140,14 +140,14 @@ class BasketController extends Controller
             $basket = $user->baskets()->where('status', 0)->first();
 
             // Check price and update basket and order accordingly
-            if ($item['price_id'] == 1 && (float)$item['price'] > (float)$inUzs && !$request->price && $item['type_id'] !== 5) {
+            if ($item['price_id'] == 1 && (float)$item['price'] > (float)$inUzs && !$request->price && $item['type_id'] !== 5  && $item['type_id'] !== 4) {
                 return response()->json([
                     'success' => false,
                     'message' => 'So`mda qiymat oshib ketdi'
                 ], 400);
             }
 
-            if ($item['price_id'] == 2 && $item['price'] > $inDollar && !$request->price && $item['type_id'] !== 5) {
+            if ($item['price_id'] == 2 && $item['price'] > $inDollar && !$request->price && $item['type_id'] !== 5  && $item['type_id'] !== 4) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Dollarda qiymat oshib ketdi'

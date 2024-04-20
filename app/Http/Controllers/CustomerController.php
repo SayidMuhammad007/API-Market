@@ -6,6 +6,7 @@ use App\Http\Requests\AddDebtRequest;
 use App\Http\Requests\PayCustomerRequest;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateDebtRequest;
+use App\Models\Basket;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\CustomerLog;
@@ -240,4 +241,10 @@ class CustomerController extends Controller
             'message' => 'Debt deleted successfully'
         ]);
     }
+
+    public function showCustomerProduct(Customer $customer){
+        $products =$customer->orders->load(['user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']);
+        return response()->json($products);
+    }
 }
+

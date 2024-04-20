@@ -26,4 +26,9 @@ class Customer extends Model
     {
         return $this->hasMany(CustomerLog::class);
     }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }
