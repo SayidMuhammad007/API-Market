@@ -34,6 +34,33 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    public function selled(Request $request)
+    {
+        $query = Basket::whereHas('order', function ($query) {
+            $query->where('branch_id', auth()->user()->branch_id);
+        })->with(['store', 'order', 'customer', 'user'])->where('status', 1)->orderBy('id', 'desc');
+
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(function ($query) use ($searchTerm) {
+                $query->orWhereHas('store', function ($storeQuery) use ($searchTerm) {
+                    $storeQuery->where('name', 'like', "%$searchTerm%");
+                })
+                ->orWhereHas('order.customer', function ($customerQuery) use ($searchTerm) {
+                    $customerQuery->where('name', 'like', "%$searchTerm%");
+                })
+                ->orWhereHas('order', function ($orderQuery) use ($searchTerm) {
+                    $orderQuery->where('id', 'like', "%$searchTerm%");
+                });
+            });
+        }
+        // Paginate the results
+        $orders = $query->paginate(20);
+
+        return response()->json($orders);
+    }
+
+
     /**
      * Display the specified resource.
      */

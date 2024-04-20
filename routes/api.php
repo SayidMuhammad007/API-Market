@@ -121,6 +121,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Order routes
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/selled', [OrderController::class, 'selled']);
     Route::get('/order/{order}', [OrderController::class, 'show']);
     Route::get('/orders/waiting', [OrderController::class, 'waitingOrders']);
     Route::get('/orders/waiting/{order}', [OrderController::class, 'waitingOrder']);
