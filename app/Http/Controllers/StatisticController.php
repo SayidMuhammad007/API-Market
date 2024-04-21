@@ -184,7 +184,7 @@ class StatisticController extends Controller
     {
         if ($start != null && $finish != null) {
             $branches = Branch::with(['orders.orderPrices', 'orders.baskets.basketPrices', 'expenses'])
-                ->whereHas('order', function ($query) use ($start, $finish) {
+                ->whereHas('orders', function ($query) use ($start, $finish) {
                     $query->whereBetween('created_at', [$start, $finish]);
                 })
                 ->get()
