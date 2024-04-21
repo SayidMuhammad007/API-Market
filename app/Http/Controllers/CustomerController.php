@@ -91,15 +91,15 @@ class CustomerController extends Controller
         $debts_dollar = 0;
         $payments_dollar = 0;
         foreach ($customer->customerLog as $val) {
-            if($val['type_id'] == 4 && $val->price_id == 1){
-                $dollar = Price::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('price')->first();
+            if($val->type_id == 4 && $val->price_id == 1){
+                $dollar = Price::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('value')->first();
                 $debts_dollar = $debts_dollar + $val->price * $dollar;
-            }else if($val['type_id'] == 4 && $val->price_id == 2){
+            }else if($val->type_id == 4 && $val->price_id == 2){
                 $debts_dollar = $debts_dollar + $val->price;
-            }else if($val['type_id'] != 4 && $val->price_id == 1){
-                $dollar = Price::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('price')->first();
+            }else if($val->type_id != 4 && $val->price_id == 1){
+                $dollar = Price::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('value')->first();
                 $payments_dollar = $payments_dollar + $val->price * $dollar;
-            }else if($val['type_id'] != 4 && $val->price_id == 2){
+            }else if($val->type_id != 4 && $val->price_id == 2){
                 $payments_dollar = $payments_dollar + $val->price;
             }
         }
