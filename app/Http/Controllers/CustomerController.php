@@ -90,7 +90,7 @@ class CustomerController extends Controller
         // $payments_sum = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
         $debts_dollar = 0;
         $payments_dollar = 0;
-        foreach ($customer->customerLog() as $val) {
+        foreach ($customer->customerLog as $val) {
             if($val->type_id == 4 && $val->price_id == 1){
                 $dollar = Price::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('price')->first();
                 $debts_dollar = $debts_dollar + $val->price * $dollar;
@@ -118,7 +118,7 @@ class CustomerController extends Controller
         // }
         // $all_dollar = $total_dollar + ($total_sum / $dollar);
         // $all_sum = $total_sum + ($total_dollar * $dollar);
-        return [$customer->customerLog, $debts_dollar, $payments_dollar];
+        return [$data, $debts_dollar, $payments_dollar];
     }
 
 
