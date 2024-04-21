@@ -184,51 +184,51 @@ class StatisticController extends Controller
     {
         if ($start != null && $finish != null) {
             $branches = Branch::selectRaw('id, name, 
-                (SELECT SUM(price) FROM avtozapchast_new.order_prices 
-                 INNER JOIN avtozapchast_new.orders ON avtozapchast_new.order_prices.order_id = avtozapchast_new.orders.id
-                 WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id 
-                 AND DATE(avtozapchast_new.order_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as sell_price_uzs,
+                (SELECT SUM(price) FROM order_prices 
+                 INNER JOIN orders ON order_prices.order_id = orders.id
+                 WHERE orders.branch_id = branches.id 
+                 AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as sell_price_uzs,
 
-                 (SELECT SUM(price) FROM avtozapchast_new.order_prices 
-                 INNER JOIN avtozapchast_new.orders ON avtozapchast_new.order_prices.order_id = avtozapchast_new.orders.id
-                 WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id 
-                 AND DATE(avtozapchast_new.order_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as sell_price_usd,
+                 (SELECT SUM(price) FROM order_prices 
+                 INNER JOIN orders ON order_prices.order_id = orders.id
+                 WHERE orders.branch_id = branches.id 
+                 AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as sell_price_usd,
 
-                (SELECT SUM(price_come) FROM avtozapchast_new.basket_prices 
-                 INNER JOIN avtozapchast_new.baskets ON avtozapchast_new.basket_prices.basket_id = avtozapchast_new.baskets.id
-                 INNER JOIN avtozapchast_new.orders ON avtozapchast_new.baskets.order_id = avtozapchast_new.orders.id
-                 WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id 
-                 AND DATE(avtozapchast_new.basket_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as come_price_uzs,
+                (SELECT SUM(price_come) FROM basket_prices 
+                 INNER JOIN baskets ON basket_prices.basket_id = baskets.id
+                 INNER JOIN orders ON baskets.order_id = orders.id
+                 WHERE orders.branch_id = branches.id 
+                 AND DATE(basket_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as come_price_uzs,
 
-                 (SELECT SUM(price_come) FROM avtozapchast_new.basket_prices 
-                 INNER JOIN avtozapchast_new.baskets ON avtozapchast_new.basket_prices.basket_id = avtozapchast_new.baskets.id
-                 INNER JOIN avtozapchast_new.orders ON avtozapchast_new.baskets.order_id = avtozapchast_new.orders.id
-                 WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id 
-                 AND DATE(avtozapchast_new.basket_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as come_price_usd,
+                 (SELECT SUM(price_come) FROM basket_prices 
+                 INNER JOIN baskets ON basket_prices.basket_id = baskets.id
+                 INNER JOIN orders ON baskets.order_id = orders.id
+                 WHERE orders.branch_id = branches.id 
+                 AND DATE(basket_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as come_price_usd,
 
-                ((SELECT SUM(price) FROM avtozapchast_new.order_prices 
-                  INNER JOIN avtozapchast_new.orders ON avtozapchast_new.order_prices.order_id = avtozapchast_new.orders.id
-                  WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
-                 (SELECT SUM(price_come) FROM avtozapchast_new.basket_prices 
-                  INNER JOIN avtozapchast_new.baskets ON avtozapchast_new.basket_prices.basket_id = avtozapchast_new.baskets.id
-                  INNER JOIN avtozapchast_new.orders ON avtozapchast_new.baskets.order_id = avtozapchast_new.orders.id
-                  WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 1)
+                ((SELECT SUM(price) FROM order_prices 
+                  INNER JOIN orders ON order_prices.order_id = orders.id
+                  WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
+                 (SELECT SUM(price_come) FROM basket_prices 
+                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
+                  INNER JOIN orders ON baskets.order_id = orders.id
+                  WHERE orders.branch_id = branches.id AND DATE(basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 1)
                 ) as benefit_uzs,
 
-                ((SELECT SUM(price) FROM avtozapchast_new.order_prices 
-                  INNER JOIN avtozapchast_new.orders ON avtozapchast_new.order_prices.order_id = avtozapchast_new.orders.id
-                  WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
-                 (SELECT SUM(price_come) FROM avtozapchast_new.basket_prices 
-                  INNER JOIN avtozapchast_new.baskets ON avtozapchast_new.basket_prices.basket_id = avtozapchast_new.baskets.id
-                  INNER JOIN avtozapchast_new.orders ON avtozapchast_new.baskets.order_id = avtozapchast_new.orders.id
-                  WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 2)
+                ((SELECT SUM(price) FROM order_prices 
+                  INNER JOIN orders ON order_prices.order_id = orders.id
+                  WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
+                 (SELECT SUM(price_come) FROM basket_prices 
+                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
+                  INNER JOIN orders ON baskets.order_id = orders.id
+                  WHERE orders.branch_id = branches.id AND DATE(basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 2)
                 ) as benefit_usd,
 
-                (SELECT SUM(cost) FROM avtozapchast_new.expences 
-                 WHERE avtozapchast_new.expences.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.expences.created_at) BETWEEN ? AND ?   AND price_id = 1) as expence_uzs,
+                (SELECT SUM(cost) FROM expences 
+                 WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 1) as expence_uzs,
                  
-                 (SELECT SUM(cost) FROM avtozapchast_new.expences 
-                 WHERE avtozapchast_new.expences.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
+                 (SELECT SUM(cost) FROM expences 
+                 WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
                 ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
