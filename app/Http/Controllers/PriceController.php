@@ -39,7 +39,8 @@ class PriceController extends Controller
      */
     public function update(Request $request, Price $price)
     {
-        CurrencyRate::create([
+        $last = CurrencyRate::where('finish', '')->first();
+        $last->update([
             'finish' => now()
         ]);
         $price->update($request->all());
