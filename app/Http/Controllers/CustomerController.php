@@ -102,6 +102,7 @@ class CustomerController extends Controller
             }else if($val->type_id != 4 && $val->price_id == 2){
                 $payments_dollar = $payments_dollar + $val->price;
             }
+            return [$data, $val, $payments_dollar];
         }
         // // Calculate total debts and payments in soums and dollars
         // $total_sum = $debts_sum - $payments_sum;
