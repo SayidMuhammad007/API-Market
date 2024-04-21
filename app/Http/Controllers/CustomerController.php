@@ -77,7 +77,6 @@ class CustomerController extends Controller
 
     public function calculate($customer)
     {
-        // $dollar = Price::where('id', 2)->value('value');
 
         // Retrieve customer log data with relationships
         $data = $customer->customerLog()->with(['branch', 'type', 'customer'])
@@ -105,9 +104,12 @@ class CustomerController extends Controller
             }
         }
         // // Calculate total debts and payments in soums and dollars
-        // $total_sum = $debts_sum - $payments_sum;
-        // $total_dollar = $debts_dollar - $payments_dollar;
-
+        $dollar = Price::where('id', 2)->value('value');
+        $total_sum = 0;
+        $total_dollar = $debts_dollar - $payments_dollar;
+        if($total_dollar < 0){
+            $total_sum = $total_dollar * $dollar;
+        }
         // // Convert negative totals to positive if necessary
         // if ($total_sum < 0) {
         //     $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
@@ -119,7 +121,7 @@ class CustomerController extends Controller
         // }
         // $all_dollar = $total_dollar + ($total_sum / $dollar);
         // $all_sum = $total_sum + ($total_dollar * $dollar);
-        return [$data, $debts_dollar, $payments_dollar];
+        return [$data, $total_dollar, $total_sum];
     }
 
 
