@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\PaymentToUserRequest;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserPaymentRequest;
 use App\Models\Access;
 use App\Models\Branch;
 use App\Models\User;
@@ -109,7 +111,7 @@ class UserController extends Controller
             $token = $user->createToken('auth_token', ['expires' => now()->addDay()])->plainTextToken;
             return response()->json([
                 'success' => true,
-            'user' => $user->load('UserAccess.Access:id,name'),
+                'user' => $user->load('UserAccess.Access:id,name'),
                 'token' => $token,
             ], 201);
         }
@@ -206,5 +208,77 @@ class UserController extends Controller
         $query = User::with(['UserAccess.Access', 'branch'])->where('branch_id', $user->branch_id)->where('status', 1);
         $users = $query->paginate(10);
         return response()->json($users);
+    }
+
+    public function payment(User $user, PaymentToUserRequest $request)
+    {
+        $user->userPaymentLogs()->create([
+            'price' => $request->price,
+            'comment' => $request->comment,
+        ]);
+        [$data, $all_sum] = $this->getAll($user, $request);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'all_sum' => $all_sum,
+        ]);
+    }
+
+    public function paymentHistory(User $user, Request $request)
+    {
+        [$data, $all_sum] = $this->getAll($user, $request);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'all_sum' => $all_sum,
+        ]);
+    }
+
+    public function getAll($user, $request=null)
+    {
+        $query = $user->userPaymentLogs();
+
+        if ($request && $request->has('start')) {
+            $start = $request->start;
+            $finish = $request->finish;
+            $query->whereDate('created_at', '>=', $start)
+                ->whereDate('created_at', '<=', $finish);
+        }
+
+        $data = $query->get();
+        $all_sum = $query->sum('price');
+        return [$data, $all_sum];
+    }
+
+    public function updatePayment(User $user, UpdateUserPaymentRequest $request)
+    {
+        $payment = $user->userPaymentLogs()->findOrFail($request->payment_id);
+
+        $payment->update([
+            'price' => $request->price ?? $payment->price,
+            'comment' => $request->comment ?? $payment->comment,
+        ]);
+        [$data, $all_sum] = $this->getAll($user, $request);
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'all_sum' => $all_sum,
+        ]);
+    }
+
+    public function deletePayment(User $user, $payment_id)
+    {
+        $payment = $user->userPaymentLogs()->findOrFail($payment_id);
+
+        $payment->delete();
+
+        [$data, $all_sum] = $this->getAll($user);
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'all_sum' => $all_sum,
+        ]);
     }
 }

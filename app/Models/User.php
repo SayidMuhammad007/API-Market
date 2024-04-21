@@ -65,4 +65,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Branch::class);
     }
+
+    public function userPaymentLogs(): HasMany
+    {
+        return $this->hasMany(UserPaymentLog::class);
+    }
 }
