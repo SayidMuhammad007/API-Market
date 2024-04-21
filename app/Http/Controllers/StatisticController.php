@@ -183,60 +183,65 @@ class StatisticController extends Controller
     public function branchesStat($start = null, $finish = null)
     {
         if ($start != null && $finish != null) {
-            $branches = Branch::selectRaw('id, name, 
-                (SELECT SUM(price) FROM avtozapchast_new.order_prices 
-                 INNER JOIN avtozapchast_new.orders ON avtozapchast_new.order_prices.order_id = avtozapchast_new.orders.id
-                 WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id 
-                 AND DATE(avtozapchast_new.order_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as sell_price_uzs,
+            $branches = Branch::with(['orders.orderPrices', 'orders.baskets.basketPrices', 'expenses'])
+                ->whereHas('orders', function ($query) use ($start, $finish) {
+                    $query->whereBetween('created_at', [$start, $finish]);
+                })
+                ->get()
+                ->map(function ($branch) use ($start, $finish) {
+                    $sellPriceUzs = $branch->orders->sum(function ($order) use ($start, $finish) {
+                        return $order->orderPrices->whereBetween('created_at', [$start, $finish])
+                            ->where('price_id', 1)
+                            ->sum('price');
+                    });
 
-                 (SELECT SUM(price) FROM avtozapchast_new.order_prices 
-                 INNER JOIN avtozapchast_new.orders ON avtozapchast_new.order_prices.order_id = avtozapchast_new.orders.id
-                 WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id 
-                 AND DATE(avtozapchast_new.order_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as sell_price_usd,
+                    $sellPriceUsd = $branch->orders->sum(function ($order) use ($start, $finish) {
+                        return $order->orderPrices->whereBetween('created_at', [$start, $finish])
+                            ->where('price_id', 2)
+                            ->sum('price');
+                    });
 
-                (SELECT SUM(price_come) FROM avtozapchast_new.basket_prices 
-                 INNER JOIN avtozapchast_new.baskets ON avtozapchast_new.basket_prices.basket_id = avtozapchast_new.baskets.id
-                 INNER JOIN avtozapchast_new.orders ON avtozapchast_new.baskets.order_id = avtozapchast_new.orders.id
-                 WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id 
-                 AND DATE(avtozapchast_new.basket_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as come_price_uzs,
+                    $comePriceUzs = $branch->orders->sum(function ($order) use ($start, $finish) {
+                        return $order->baskets->flatMap->basketPrices->whereBetween('created_at', [$start, $finish])
+                            ->where('price_id', 1)
+                            ->sum('price_come');
+                    });
 
-                 (SELECT SUM(price_come) FROM avtozapchast_new.basket_prices 
-                 INNER JOIN avtozapchast_new.baskets ON avtozapchast_new.basket_prices.basket_id = avtozapchast_new.baskets.id
-                 INNER JOIN avtozapchast_new.orders ON avtozapchast_new.baskets.order_id = avtozapchast_new.orders.id
-                 WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id 
-                 AND DATE(avtozapchast_new.basket_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as come_price_usd,
+                    $comePriceUsd = $branch->orders->sum(function ($order) use ($start, $finish) {
+                        return $order->baskets->flatMap->basketPrices->whereBetween('created_at', [$start, $finish])
+                            ->where('price_id', 2)
+                            ->sum('price_come');
+                    });
 
-                ((SELECT SUM(price) FROM avtozapchast_new.order_prices 
-                  INNER JOIN avtozapchast_new.orders ON avtozapchast_new.order_prices.order_id = avtozapchast_new.orders.id
-                  WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
-                 (SELECT SUM(price_come) FROM avtozapchast_new.basket_prices 
-                  INNER JOIN avtozapchast_new.baskets ON avtozapchast_new.basket_prices.basket_id = avtozapchast_new.baskets.id
-                  INNER JOIN avtozapchast_new.orders ON avtozapchast_new.baskets.order_id = avtozapchast_new.orders.id
-                  WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 1)
-                ) as benefit_uzs,
+                    $benefitUzs = $sellPriceUzs - $comePriceUzs;
+                    $benefitUsd = $sellPriceUsd - $comePriceUsd;
 
-                ((SELECT SUM(price) FROM avtozapchast_new.order_prices 
-                  INNER JOIN avtozapchast_new.orders ON avtozapchast_new.order_prices.order_id = avtozapchast_new.orders.id
-                  WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
-                 (SELECT SUM(price_come) FROM avtozapchast_new.basket_prices 
-                  INNER JOIN avtozapchast_new.baskets ON avtozapchast_new.basket_prices.basket_id = avtozapchast_new.baskets.id
-                  INNER JOIN avtozapchast_new.orders ON avtozapchast_new.baskets.order_id = avtozapchast_new.orders.id
-                  WHERE avtozapchast_new.orders.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 2)
-                ) as benefit_usd,
+                    $expenseUzs = $branch->expenses->where('price_id', 1)
+                        ->whereBetween('created_at', [$start, $finish])
+                        ->sum('cost');
 
-                (SELECT SUM(cost) FROM avtozapchast_new.expences 
-                 WHERE avtozapchast_new.expences.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.expences.created_at) BETWEEN ? AND ?   AND price_id = 1) as expence_uzs,
-                 
-                 (SELECT SUM(cost) FROM avtozapchast_new.expences 
-                 WHERE avtozapchast_new.expences.branch_id = avtozapchast_new.branches.id AND DATE(avtozapchast_new.expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
-                 ')
-                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
-                ->get();
+                    $expenseUsd = $branch->expenses->where('price_id', 2)
+                        ->whereBetween('created_at', [$start, $finish])
+                        ->sum('cost');
+
+                    return [
+                        'id' => $branch->id,
+                        'name' => $branch->name,
+                        'sell_price_uzs' => $sellPriceUzs,
+                        'sell_price_usd' => $sellPriceUsd,
+                        'come_price_uzs' => $comePriceUzs,
+                        'come_price_usd' => $comePriceUsd,
+                        'benefit_uzs' => $benefitUzs,
+                        'benefit_usd' => $benefitUsd,
+                        'expense_uzs' => $expenseUzs,
+                        'expense_usd' => $expenseUsd,
+                    ];
+                });
 
             return response()->json([
                 'start' => $start,
                 'finish' => $finish,
-                'data' => $branches
+                'data' => $branches,
             ]);
         } else {
             return response()->json([
