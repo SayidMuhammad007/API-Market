@@ -107,7 +107,7 @@ class CustomerController extends Controller
         $dollar = Price::where('id', 2)->value('value');
         $total_sum = 0;
         $total_dollar = $debts_dollar - $payments_dollar;
-        if($total_dollar < 0){
+        if($total_dollar > 0){
             $total_sum = $total_dollar * $dollar;
         }
         // // Convert negative totals to positive if necessary
