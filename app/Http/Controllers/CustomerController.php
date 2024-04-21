@@ -90,39 +90,19 @@ class CustomerController extends Controller
         // $payments_sum = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
         $debts_dollar = 0;
         $payments_dollar = 0;
-
         foreach ($customer->customerLog() as $val) {
-            if ($val->type_id == 4 && $val->price_id == 1) {
-                $dollar = Price::where('start', '<=', $val->created_at)
-                    ->where('finish', '>=', $val->created_at)
-                    ->value('price');
-
-                // Ensure $dollar is not null before adding to debts_dollar
-                if ($dollar !== null) {
-                    $debts_dollar += $val->price * $dollar;
-                } else {
-                    // Handle the case where $dollar is null
-                    // For example, log an error or handle it based on your application's logic
-                }
-            } elseif ($val->type_id == 4 && $val->price_id == 2) {
-                $debts_dollar += $val->price;
-            } elseif ($val->type_id != 4 && $val->price_id == 1) {
-                $dollar = Price::where('start', '<=', $val->created_at)
-                    ->where('finish', '>=', $val->created_at)
-                    ->value('price');
-
-                // Ensure $dollar is not null before adding to payments_dollar
-                if ($dollar !== null) {
-                    $payments_dollar += $val->price * $dollar;
-                } else {
-                    // Handle the case where $dollar is null
-                    // For example, log an error or handle it based on your application's logic
-                }
-            } elseif ($val->type_id != 4 && $val->price_id == 2) {
-                $payments_dollar += $val->price;
+            if($val->type_id == 4 && $val->price_id == 1){
+                $dollar = Price::where('start', '>=', $val->created_at)->where('finish', '<=', $val->created_at)->value('price')->first();
+                $debts_dollar = $debts_dollar + $val->price * $dollar;
+            }else if($val->type_id == 4 && $val->price_id == 2){
+                $debts_dollar = $debts_dollar + $val->price;
+            }else if($val->type_id != 4 && $val->price_id == 1){
+                $dollar = Price::where('start', '>=', $val->created_at)->where('finish', '<=', $val->created_at)->value('price')->first();
+                $payments_dollar = $payments_dollar + $val->price * $dollar;
+            }else if($val->type_id != 4 && $val->price_id == 2){
+                $payments_dollar = $payments_dollar + $val->price;
             }
         }
-
         // // Calculate total debts and payments in soums and dollars
         // $total_sum = $debts_sum - $payments_sum;
         // $total_dollar = $debts_dollar - $payments_dollar;
@@ -276,9 +256,9 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function showCustomerProduct(Customer $customer)
-    {
-        $products = $customer->orders->load(['user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']);
+    public function showCustomerProduct(Customer $customer){
+        $products =$customer->orders->load(['user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']);
         return response()->json($products);
     }
 }
+
