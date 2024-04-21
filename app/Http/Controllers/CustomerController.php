@@ -92,7 +92,7 @@ class CustomerController extends Controller
         $payments_dollar = 0;
         foreach ($customer->customerLog as $val) {
             if($val->type_id == 4 && $val->price_id == 1){
-                $dollar = CurrencyRate::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('price');
+                $dollar = CurrencyRate::where('updated_at', '<=', $val->created_at)->where('updated_at', '>', $val->created_at)->value('price');
                 if(!$dollar){
                     $dollar = CurrencyRate::orderBy('id', 'desc')->value('price');
                 }
@@ -100,7 +100,7 @@ class CustomerController extends Controller
             }else if($val->type_id == 4 && $val->price_id == 2){
                 $debts_dollar = $debts_dollar + $val->price;
             }else if($val->type_id != 4 && $val->price_id == 1){
-                $dollar = CurrencyRate::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('price');
+                $dollar = CurrencyRate::where('updated_at', '<=', $val->created_at)->where('updated_at', '>', $val->created_at)->value('price');
                 if(!$dollar){
                     $dollar = CurrencyRate::orderBy('id', 'desc')->value('price');
                 }
