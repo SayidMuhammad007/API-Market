@@ -8,6 +8,7 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateDebtRequest;
 use App\Models\Basket;
 use App\Models\Branch;
+use App\Models\CurrencyRate;
 use App\Models\Customer;
 use App\Models\CustomerLog;
 use App\Models\Price;
@@ -92,12 +93,12 @@ class CustomerController extends Controller
         $payments_dollar = 0;
         foreach ($customer->customerLog as $val) {
             if($val->type_id == 4 && $val->price_id == 1){
-                $dollar = Price::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('value')->first();
+                $dollar = CurrencyRate::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('price')->first();
                 $debts_dollar = $debts_dollar + $val->price * $dollar;
             }else if($val->type_id == 4 && $val->price_id == 2){
                 $debts_dollar = $debts_dollar + $val->price;
             }else if($val->type_id != 4 && $val->price_id == 1){
-                $dollar = Price::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('value')->first();
+                $dollar = CurrencyRate::where('start', '<=', $val->created_at)->where('finish', '>', $val->created_at)->value('price')->first();
                 $payments_dollar = $payments_dollar + $val->price * $dollar;
             }else if($val->type_id != 4 && $val->price_id == 2){
                 $payments_dollar = $payments_dollar + $val->price;
