@@ -39,23 +39,19 @@ class PriceController extends Controller
      */
     public function update(Request $request, Price $price)
     {
-        // Update the last CurrencyRate finish timestamp
-        $last = CurrencyRate::where('finish', '')->first();
+        $last = CurrencyRate::where('finish', null)->first();
         if ($last) {
             $last->update(['finish' => now()]);
         }
 
-        // Update the Price model
         $price->update($request->all());
 
-        // Create a new CurrencyRate entry
         CurrencyRate::create([
             'start' => now(),
-            'finish' => null, // Assuming finish remains null until the next rate is set
-            'price' => $request->price,
+            'finish' => null, 
+            'price' => $request->value,
         ]);
 
-        // Return a JSON response with paginated Price data
         return response()->json(Price::paginate(20));
     }
 
