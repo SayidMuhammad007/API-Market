@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePriceRequest;
+use App\Models\CurrencyRate;
 use App\Models\Price;
 use Illuminate\Http\Request;
 
@@ -38,7 +39,15 @@ class PriceController extends Controller
      */
     public function update(Request $request, Price $price)
     {
+        CurrencyRate::create([
+            'finish' => now()
+        ]);
         $price->update($request->all());
+        CurrencyRate::create([
+            'finish' => now(),
+            'start' => now(),
+            'price' => $request->price,
+        ]);
         return response()->json(Price::paginate(20));
     }
 
