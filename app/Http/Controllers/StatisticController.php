@@ -190,40 +190,40 @@ class StatisticController extends Controller
                 ->get()
                 ->map(function ($branch) use ($start, $finish) {
                     $sellPriceUzs = $branch->orders->sum(function ($order) use ($start, $finish) {
-                        return $order->orderPrices->whereBetween('created_at', [$start, $finish])
+                        return optional($order->orderPrices)->whereBetween('created_at', [$start, $finish])
                             ->where('price_id', 1)
                             ->sum('price');
                     });
-
+        
                     $sellPriceUsd = $branch->orders->sum(function ($order) use ($start, $finish) {
-                        return $order->orderPrices->whereBetween('created_at', [$start, $finish])
+                        return optional($order->orderPrices)->whereBetween('created_at', [$start, $finish])
                             ->where('price_id', 2)
                             ->sum('price');
                     });
-
+        
                     $comePriceUzs = $branch->orders->sum(function ($order) use ($start, $finish) {
-                        return $order->baskets->flatMap->basketPrices->whereBetween('created_at', [$start, $finish])
+                        return optional($order->baskets->flatMap->basketPrices)->whereBetween('created_at', [$start, $finish])
                             ->where('price_id', 1)
                             ->sum('price_come');
                     });
-
+        
                     $comePriceUsd = $branch->orders->sum(function ($order) use ($start, $finish) {
-                        return $order->baskets->flatMap->basketPrices->whereBetween('created_at', [$start, $finish])
+                        return optional($order->baskets->flatMap->basketPrices)->whereBetween('created_at', [$start, $finish])
                             ->where('price_id', 2)
                             ->sum('price_come');
                     });
-
+        
                     $benefitUzs = $sellPriceUzs - $comePriceUzs;
                     $benefitUsd = $sellPriceUsd - $comePriceUsd;
-
-                    $expenseUzs = $branch->expenses->where('price_id', 1)
+        
+                    $expenseUzs = optional($branch->expenses)->where('price_id', 1)
                         ->whereBetween('created_at', [$start, $finish])
                         ->sum('cost');
-
-                    $expenseUsd = $branch->expenses->where('price_id', 2)
+        
+                    $expenseUsd = optional($branch->expenses)->where('price_id', 2)
                         ->whereBetween('created_at', [$start, $finish])
                         ->sum('cost');
-
+        
                     return [
                         'id' => $branch->id,
                         'name' => $branch->name,
@@ -237,7 +237,7 @@ class StatisticController extends Controller
                         'expense_usd' => $expenseUsd,
                     ];
                 });
-
+        
             return response()->json([
                 'start' => $start,
                 'finish' => $finish,
