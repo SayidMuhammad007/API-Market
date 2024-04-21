@@ -38,7 +38,7 @@ class OrderController extends Controller
     {
         $query = Basket::whereHas('order', function ($query) {
             $query->where('branch_id', auth()->user()->branch_id);
-        })->with(['store', 'order', 'customer', 'user', 'order.order_price'])->where('status', 1)->orderBy('id', 'desc');
+        })->with(['store', 'order', 'customer', 'user', 'basket_price'])->where('status', 1)->orderBy('id', 'desc');
 
         if ($request->has('search')) {
             $searchTerm = $request->input('search');

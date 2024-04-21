@@ -138,4 +138,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Statistics routes
     Route::get('/statistics', [StatisticController::class, 'index']);
     Route::get('/statistics/report', [StatisticController::class, 'calc']);
+    Route::get('/statistics/branches/{start?}/{finish?}', [StatisticController::class, 'branchesStat']);
 });
