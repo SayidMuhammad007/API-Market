@@ -6,7 +6,6 @@ use App\Models\BasketPrice;
 use App\Models\Customer;
 use App\Models\Expence;
 use App\Models\Order;
-use App\Models\OrderPrice;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -179,7 +178,7 @@ class StatisticController extends Controller
     }
 
 
-
+    // public function branchesStat(){}
 
 
 

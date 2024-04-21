@@ -46,12 +46,12 @@ class OrderController extends Controller
                 $query->orWhereHas('store', function ($storeQuery) use ($searchTerm) {
                     $storeQuery->where('name', 'like', "%$searchTerm%");
                 })
-                ->orWhereHas('order.customer', function ($customerQuery) use ($searchTerm) {
-                    $customerQuery->where('name', 'like', "%$searchTerm%");
-                })
-                ->orWhereHas('order', function ($orderQuery) use ($searchTerm) {
-                    $orderQuery->where('id', 'like', "%$searchTerm%");
-                });
+                    ->orWhereHas('order.customer', function ($customerQuery) use ($searchTerm) {
+                        $customerQuery->where('name', 'like', "%$searchTerm%");
+                    })
+                    ->orWhereHas('order', function ($orderQuery) use ($searchTerm) {
+                        $orderQuery->where('id', 'like', "%$searchTerm%");
+                    });
             });
         }
         // Paginate the results
