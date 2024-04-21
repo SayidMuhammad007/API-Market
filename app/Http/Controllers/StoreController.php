@@ -36,7 +36,7 @@ class StoreController extends Controller
         }
 
         // Paginate the results
-        $stores = $query->orderBy("id", 'DESC')->paginate(10);
+        $stores = $query->orderBy("quantity", 'ASC')->paginate(10);
 
         return response()->json($stores);
     }
