@@ -88,23 +88,37 @@ class CustomerController extends Controller
         $debts_dollar = $customer->customerLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
         $payments_dollar = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
         $payments_sum = $customer->customerLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
-
-        // Calculate total debts and payments in soums and dollars
-        $total_sum = $debts_sum - $payments_sum;
-        $total_dollar = $debts_dollar - $payments_dollar;
-
-        // Convert negative totals to positive if necessary
-        if ($total_sum < 0) {
-            $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
-            // return response()->json($total_dollar);
-            $total_sum = 0;
-        } else if ($total_dollar < 0) {
-            $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
-            $total_dollar = 0;
+        $debts_dollar = 0;
+        $payments_dollar = 0;
+        foreach ($customer->customerLog() as $val) {
+            if($val->type_id == 4 && $val->price_id == 1){
+                $dollar = Price::where('start', '>=', $val->created_at)->where('end', '<=', $val->created_at)->value('price')->first();
+                $debts_dollar = $debts_dollar + $val->price * $dollar;
+            }else if($val->type_id == 4 && $val->price_id == 2){
+                $debts_dollar = $debts_dollar + $val->price;
+            }else if($val->type_id != 4 && $val->price_id == 1){
+                $dollar = Price::where('start', '>=', $val->created_at)->where('end', '<=', $val->created_at)->value('price')->first();
+                $payments_dollar = $payments_dollar + $val->price * $dollar;
+            }else if($val->type_id != 4 && $val->price_id == 2){
+                $payments_dollar = $payments_dollar + $val->price;
+            }
         }
-        $all_dollar = $total_dollar + ($total_sum / $dollar);
-        $all_sum = $total_sum + ($total_dollar * $dollar);
-        return [$data, $all_dollar, $all_sum];
+        // // Calculate total debts and payments in soums and dollars
+        // $total_sum = $debts_sum - $payments_sum;
+        // $total_dollar = $debts_dollar - $payments_dollar;
+
+        // // Convert negative totals to positive if necessary
+        // if ($total_sum < 0) {
+        //     $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
+        //     // return response()->json($total_dollar);
+        //     $total_sum = 0;
+        // } else if ($total_dollar < 0) {
+        //     $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
+        //     $total_dollar = 0;
+        // }
+        // $all_dollar = $total_dollar + ($total_sum / $dollar);
+        // $all_sum = $total_sum + ($total_dollar * $dollar);
+        return [$data, $debts_dollar, $payments_dollar];
     }
 
 
