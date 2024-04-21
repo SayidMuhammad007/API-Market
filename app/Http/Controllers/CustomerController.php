@@ -118,7 +118,7 @@ class CustomerController extends Controller
         // }
         // $all_dollar = $total_dollar + ($total_sum / $dollar);
         // $all_sum = $total_sum + ($total_dollar * $dollar);
-        return [$customer->customerLog(), $debts_dollar, $payments_dollar];
+        return [$customer->customerLog, $debts_dollar, $payments_dollar];
     }
 
 
