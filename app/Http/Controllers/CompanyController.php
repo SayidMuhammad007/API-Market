@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddStoreRequest;
+use App\Http\Requests\AttachStoresRequest;
 use App\Http\Requests\DebtCompanyRequest;
 use App\Http\Requests\PayCompanyRequest;
 use App\Http\Requests\StoreCompanyRequest;
@@ -9,6 +11,7 @@ use App\Http\Requests\UpdateDebtCompanyRequest;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Price;
+use App\Models\Store;
 use App\Models\Type;
 use Illuminate\Http\Request;
 
@@ -226,5 +229,49 @@ class CompanyController extends Controller
         $all_dollar = $total_dollar + ($total_sum / $dollar);
         $all_sum = $total_sum + ($total_dollar * $dollar);
         return [$data, $all_dollar, $all_sum];
+    }
+
+    public function storeToCompany(AttachStoresRequest $request, Company $company)
+    {
+        foreach ($request->stores as $store) {
+            $store = Store::where('id', $store['store_id'])->first();
+            if (!$store) {
+                return response()->json([
+                    'error' => 'Store not found'
+                ]);
+            }
+            $store->update(['company_id' => $company->id]);
+        }
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    public function addStore(AddStoreRequest $request, Company $company)
+    {
+        $store = Store::findOrFail($request->store_id);
+        $price = $store->price_come;
+        $qty = $request->qty;
+
+        // Update store quantity using increment method
+        $store->increment('quantity', $qty);
+
+        // Create company log
+        $company->companyLog()->create([
+            'type_id' => 4,
+            'price_id' => $store->price_id,
+            'comment' => $request->comment,
+            'price' => $price * $qty,
+            'branch_id' => $company->branch_id,
+        ]);
+
+        // Get updated company data
+        list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
+
+        return response()->json([
+            'data' => $data,
+            'debts_sum' => $debts_sum,
+            'debts_dollar' => $debts_dollar
+        ]);
     }
 }

@@ -24,7 +24,8 @@ class Store extends Model implements HasMedia
         'price_wholesale',
         'quantity',
         'danger_count',
-        'status'
+        'status',
+        'company_id'
     ];
 
     public function category(): BelongsTo
@@ -40,5 +41,10 @@ class Store extends Model implements HasMedia
     public function price(): BelongsTo
     {
         return $this->belongsTo(Price::class);
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }

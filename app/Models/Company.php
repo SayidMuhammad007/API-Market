@@ -26,4 +26,9 @@ class Company extends Model
     {
         return $this->hasMany(CompanyLog::class);
     }
+
+    public function stores(): HasMany
+    {
+        return $this->hasMany(Store::class);
+    }
 }
