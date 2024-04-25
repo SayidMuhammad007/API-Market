@@ -249,7 +249,7 @@ class CompanyController extends Controller
 
     public function addStore(AddStoreRequest $request, Company $company)
     {
-        $store = Store::where('company_id',$request->store_id)->first();
+        $store = Store::where('id',$request->store_id)->first();
         $price = $store->price_come;
         $qty = $request->qty;
 
