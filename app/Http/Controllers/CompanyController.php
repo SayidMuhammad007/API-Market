@@ -249,12 +249,14 @@ class CompanyController extends Controller
 
     public function addStore(AddStoreRequest $request, Company $company)
     {
-        $store = Store::where('id',$request->store_id)->first();
+        // Check if the store exists
+        $store = Store::findOrFail($request->store_id);
         $price = $store->price_come;
         $qty = $request->qty;
-
-        // Update store quantity using increment method
+    
+        // Increment store quantity
         $store->increment('quantity', $qty);
+    
         // Create company log
         $company->companyLog()->create([
             'type_id' => 4,
@@ -263,16 +265,17 @@ class CompanyController extends Controller
             'price' => $price * $qty,
             'branch_id' => $company->branch_id,
         ]);
-
+    
         // Get updated company data
         list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
-
+    
         return response()->json([
             'data' => $data,
             'debts_sum' => $debts_sum,
             'debts_dollar' => $debts_dollar
         ]);
     }
+    
 
     public function stores(Company $company)
     {
