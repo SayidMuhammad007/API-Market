@@ -279,7 +279,7 @@ class CompanyController extends Controller
     {
         $query = Store::query()
             ->with(['media', 'category', 'branch', 'price'])
-            ->where('company_id', auth()->user()->branch_id)
+            ->where('company_id', $company->id)
             ->where('status', 1);
 
         // Paginate the results

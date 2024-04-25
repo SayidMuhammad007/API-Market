@@ -79,7 +79,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/company/{company}/stores/attach', [CompanyController::class, 'storeToCompany']);
     Route::post('/company/{company}/stores/add', [CompanyController::class, 'addStore']);
     Route::post('/company/{company}/stores', [CompanyController::class, 'stores']);
-    Route::post('/company', [CompanyController::class, 'store']);
+    Route::get('/company', [CompanyController::class, 'store']);
     Route::delete('/company/{company}', [CompanyController::class, 'destroy']);
 
     // Type routes
