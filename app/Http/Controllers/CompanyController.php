@@ -30,7 +30,7 @@ class CompanyController extends Controller
         }
 
         // Paginate the results
-        $customers = $query->paginate(10);
+        $customers = $query->paginate($request->perPage ?? 10);
         return response()->json($customers);
     }
     /**
