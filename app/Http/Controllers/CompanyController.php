@@ -274,4 +274,17 @@ class CompanyController extends Controller
             'debts_dollar' => $debts_dollar
         ]);
     }
+
+    public function stores(Company $company)
+    {
+        $query = Store::query()
+            ->with(['media', 'category', 'branch', 'price'])
+            ->where('company_id', auth()->user()->branch_id)
+            ->where('status', 1);
+
+        // Paginate the results
+        $stores = $query->orderBy("quantity", 'ASC')->paginate(10);
+
+        return response()->json($stores);
+    }
 }
