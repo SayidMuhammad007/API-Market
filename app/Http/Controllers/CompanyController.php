@@ -249,13 +249,12 @@ class CompanyController extends Controller
 
     public function addStore(AddStoreRequest $request, Company $company)
     {
-        $store = Store::findOrFail($request->store_id);
+        $store = Store::find($request->store_id)->first();
         $price = $store->price_come;
         $qty = $request->qty;
 
         // Update store quantity using increment method
         $store->increment('quantity', $qty);
-
         // Create company log
         $company->companyLog()->create([
             'type_id' => 4,
