@@ -24,15 +24,18 @@ class CompanyController extends Controller
     {
         $user = auth()->user();
         $query = Company::where('branch_id', $user->branch_id);
+        
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
-            $query->where('name', 'like', "%$$searchTerm%");
+            $query->where('name', 'like', "%$searchTerm%");
         }
-
+    
         // Paginate the results
         $customers = $query->paginate($request->perPage ?? 10);
+        
         return response()->json($customers);
     }
+    
     /**
      * Store a newly created resource in storage.
      */
