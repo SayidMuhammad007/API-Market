@@ -64,7 +64,18 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        //
+        $category->update($request->all());
+        $query = Category::query()->with('branch')->withCount('stores');
+
+        // Check if search query parameter is provided
+        if ($request->has('search')) {
+            $searchTerm = $request->input('search');
+            $query->where('name', 'like', "%$searchTerm%");
+        }
+        // Paginate the results
+        $categories = $query->paginate(1000);
+
+        return response()->json($categories);
     }
 
     /**

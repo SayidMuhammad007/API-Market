@@ -184,7 +184,10 @@ class StatisticController extends Controller
     {
         if ($start != null && $finish != null) {
             $branches = Branch::selectRaw('id, name, 
-                (SELECT SUM(price) FROM order_prices 
+                (SELECT CASE 
+                WHEN (SELECT price_id FROM stores WHERE id = (SELECT store_id FROM orders WHERE id = order_prices.order_id) == 1 
+                THEN SUM(price) ELSE SUM(price * (SELECT dollar FROM orders WHERE id = order_prices.order_id) END) 
+                FROM order_prices 
                  INNER JOIN orders ON order_prices.order_id = orders.id
                  WHERE orders.branch_id = branches.id 
                  AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as sell_price_uzs,
