@@ -195,7 +195,7 @@ class StatisticController extends Controller
                  WHERE orders.branch_id = branches.id 
                  AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as sell_price_usd,
 
-                (SELECT SUM(price_come) FROM basket_prices 
+                (SELECT WHEN CASE (SELECT price_id FROM stores WHERE id = store_id) == 1 THEN SUM(price_come) ELSE 0 END FROM basket_prices 
                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
                  INNER JOIN orders ON baskets.order_id = orders.id
                  WHERE orders.branch_id = branches.id 
