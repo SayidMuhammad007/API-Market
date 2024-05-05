@@ -203,7 +203,7 @@ class StatisticController extends Controller
                  AND DATE(basket_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as come_price_uzs,
 
                  (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 2 THEN price_come 
-                ELSE (price_come * orders.dollar) END) FROM basket_prices      
+                ELSE (price_come / orders.dollar) END) FROM basket_prices      
                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
                  INNER JOIN orders ON baskets.order_id = orders.id
                  WHERE orders.branch_id = branches.id 
