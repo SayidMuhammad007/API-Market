@@ -195,21 +195,15 @@ class StatisticController extends Controller
                  WHERE orders.branch_id = branches.id 
                  AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as sell_price_usd,
 
-                (SELECT SUM(
-                    CASE 
-                        WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 1 
-                        THEN price_come 
-                        ELSE 0 
-                    END
-                ) 
-                FROM 
-                    basket_prices              
+                (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 1 THEN price_come 
+                ELSE 0 END) FROM basket_prices              
                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
                  INNER JOIN orders ON baskets.order_id = orders.id
                  WHERE orders.branch_id = branches.id 
                  AND DATE(basket_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as come_price_uzs,
 
-                 (SELECT SUM(price_come) FROM basket_prices 
+                 (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 2 THEN price_come 
+                ELSE 0 END) FROM basket_prices      
                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
                  INNER JOIN orders ON baskets.order_id = orders.id
                  WHERE orders.branch_id = branches.id 
