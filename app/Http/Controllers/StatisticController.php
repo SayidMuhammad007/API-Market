@@ -203,7 +203,7 @@ class StatisticController extends Controller
                     END
                 ) 
                 FROM 
-                    basket_prices,                 
+                    basket_prices              
                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
                  INNER JOIN orders ON baskets.order_id = orders.id
                  WHERE orders.branch_id = branches.id 
