@@ -189,6 +189,41 @@ class StatisticController extends Controller
             WHERE orders.branch_id = branches.id 
             AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as sell_price_uzs,
 
+            (SELECT SUM(price) FROM order_prices 
+            INNER JOIN orders ON order_prices.order_id = orders.id
+            WHERE orders.branch_id = branches.id 
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 1) as sell_price_naqd,
+
+            (SELECT SUM(price) FROM order_prices 
+            INNER JOIN orders ON order_prices.order_id = orders.id
+            WHERE orders.branch_id = branches.id 
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 2) as sell_price_plastik,
+
+            (SELECT SUM(price) FROM order_prices 
+            INNER JOIN orders ON order_prices.order_id = orders.id
+            WHERE orders.branch_id = branches.id 
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 3) as sell_price_click,
+
+
+            (SELECT SUM(price) FROM order_prices 
+            INNER JOIN orders ON order_prices.order_id = orders.id
+            WHERE orders.branch_id = branches.id 
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 5 AND price_id = 1) as sell_price_back_uzs,
+
+            (SELECT SUM(price) FROM order_prices 
+            INNER JOIN orders ON order_prices.order_id = orders.id
+            WHERE orders.branch_id = branches.id 
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 5 AND price_id = 2) as sell_price_back_usd,
+
+            (SELECT SUM(price) FROM order_prices 
+            INNER JOIN orders ON order_prices.order_id = orders.id
+            WHERE orders.branch_id = branches.id 
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 4 AND price_id = 2) as sell_price_nasiya_usd,
+
+            (SELECT SUM(price) FROM order_prices 
+            INNER JOIN orders ON order_prices.order_id = orders.id
+            WHERE orders.branch_id = branches.id 
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 4 AND price_id = 1) as sell_price_nasiya_uzs,
             
                  (SELECT SUM(price) FROM order_prices 
                  INNER JOIN orders ON order_prices.order_id = orders.id
@@ -235,7 +270,7 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
 
             return response()->json([

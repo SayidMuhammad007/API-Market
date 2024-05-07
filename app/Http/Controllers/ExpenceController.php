@@ -32,7 +32,7 @@ class ExpenceController extends Controller
         }
 
         // Paginate the results
-        $expences = $query->paginate(20);
+        $expences = $query->orderBy('id', 'DESC')->paginate(20);
 
         return response()->json($expences);
     }
