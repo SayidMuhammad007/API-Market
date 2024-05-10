@@ -25,12 +25,14 @@ class StoreController extends Controller
         // Check if search query parameter is provided
         if ($request->has('search') && $request->input('search') != null) {
             $searchTerm = $request->input('search');
-            // Add conditions to search in relevant columns
             $query->where(function ($query) use ($searchTerm) {
                 $query->where('name', 'like', "%$searchTerm%")
                     ->orWhere('barcode', 'like', "%$searchTerm%")
                     ->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
                         $categoryQuery->where('name', 'like', "%$searchTerm%");
+                    })
+                    ->orWhereHas('price', function ($priceQuery) use ($searchTerm) {
+                        $priceQuery->where('name', 'like', "%$searchTerm%");
                     });
             });
         }
