@@ -228,6 +228,22 @@ class StatisticController extends Controller
     {
         if ($start != null && $finish != null) {
             $branches = Branch::selectRaw('id, name, 
+            (SELECT SUM(cost) FROM returned_stores 
+            WHERE branch_id = branches.id 
+            AND DATE(created_at) BETWEEN ? AND ? AND price_id = 1) as vozvrat_uzs,
+
+            (SELECT SUM(cost) FROM returned_stores 
+            WHERE branch_id = branches.id 
+            AND DATE(created_at) BETWEEN ? AND ? AND price_id = 2) as vozvrat_usd,
+
+            (SELECT SUM(price_come) FROM forward_histories 
+            WHERE branch_id = branches.id 
+            AND DATE(created_at) BETWEEN ? AND ? AND price_id = 1) as tovar_oldik_uzs,
+
+            (SELECT SUM(price_come) FROM forward_histories 
+            WHERE branch_id = branches.id 
+            AND DATE(created_at) BETWEEN ? AND ? AND price_id = 2) as tovar_oldik_usd,
+
             (SELECT SUM(price) FROM order_prices 
             INNER JOIN orders ON order_prices.order_id = orders.id
             WHERE orders.branch_id = branches.id 
@@ -301,7 +317,7 @@ class StatisticController extends Controller
             (IFNULL((SELECT SUM(IFNULL(price, 0)) FROM order_prices 
             INNER JOIN orders ON order_prices.order_id = orders.id
             WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 2), 0) - IFNULL((SELECT SUM(IFNULL(cost, 0)) FROM expences 
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 2), 0) - IFNULL((SELECT SUM(IFNULL(cost, 0)) FROM expences 
             WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2), 0) - 
             IFNULL((SELECT SUM(IFNULL(price, 0)) FROM company_logs 
             WHERE company_logs.branch_id = branches.id 
@@ -309,6 +325,26 @@ class StatisticController extends Controller
             WHERE customer_logs.branch_id = branches.id 
             AND DATE(customer_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 2), 0))as kassa_usd,
 
+
+            ((SELECT SUM(price) FROM order_prices 
+                  INNER JOIN orders ON order_prices.order_id = orders.id
+                  WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
+                 (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 1 THEN price_come 
+                 ELSE (price_come * orders.dollar) END) FROM basket_prices 
+                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
+                  INNER JOIN orders ON baskets.order_id = orders.id
+                  WHERE orders.branch_id = branches.id AND DATE(basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 1)
+                ) as benefit_uzs,
+
+                ((SELECT SUM(price) FROM order_prices 
+                  INNER JOIN orders ON order_prices.order_id = orders.id
+                  WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
+                 (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 2 THEN price_come 
+                 ELSE (price_come / orders.dollar) END) FROM basket_prices 
+                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
+                  INNER JOIN orders ON baskets.order_id = orders.id
+                  WHERE orders.branch_id = branches.id AND DATE(basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 2)
+                ) as benefit_usd,
             
                  (SELECT SUM(price) FROM order_prices 
                  INNER JOIN orders ON order_prices.order_id = orders.id
@@ -321,7 +357,7 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish,  $start, $finish, $start, $finish,  $start, $finish,$start, $finish,$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
 
             return response()->json([

@@ -78,7 +78,11 @@ class StoreController extends Controller
         }
         $item->forwardHistories()->create([
             'user_id' => auth()->user()->id,
-            'count' => $item->quantity,
+            'branch_id' => auth()->user()->branch_id,
+            'count' => $request->quantity,
+            'price_come' => $request->price_come,
+            'price_sell' => $request->price_sell,
+            'price_id' => $request->price_id,
         ]);
         $branch->update(['barcode' => ++$branch->barcode]);
 
@@ -171,7 +175,11 @@ class StoreController extends Controller
         ]);
         $store->forwardHistories()->create([
             'user_id' => auth()->user()->id,
+            'branch_id' => auth()->user()->branch_id,
             'count' => $request->quantity,
+            'price_come' => $store->price_come,
+            'price_sell' => $store->price_sell,
+            'price_id' => $store->price_id,
         ]);
         return response()->json(['status' => true]);
     }

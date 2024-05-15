@@ -14,6 +14,10 @@ class ForwardHistory extends Model
         'store_id',
         'user_id',
         'count',
+        'price_come',
+        'price_sell',
+        'branch_id',
+        'price_id'
     ];
 
     public function store(): BelongsTo

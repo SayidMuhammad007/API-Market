@@ -122,7 +122,6 @@ class OrderController extends Controller
         $reduced_price_type = $reduced_price_data->price_id ?? null;
 
 
-
         $sumTotal = 0;
         $dollarTotal = 0;
         $dollarRate = Price::where('id', 2)->value('value');
@@ -143,7 +142,11 @@ class OrderController extends Controller
             $dollarTotal += $sumTotal / $dollarRate;
             $sumTotal = 0;
         }
-
+        if ($reduced_price_type == 1) {
+            $dollarTotal -= $reduced_price;
+        } else if ($reduced_price_type == 2) {
+            $sumTotal -= $reduced_price;
+        }
         // Load related data and return along with calculated totals
         return [$order->load(['customer', 'user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']), $dollarTotal, $sumTotal, $reduced_price, $reduced_price_type];
     }

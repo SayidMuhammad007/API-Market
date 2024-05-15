@@ -14,8 +14,12 @@ return new class extends Migration
         Schema::create('forward_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('store_id');
+            $table->foreignId('price_id');
             $table->foreignId('user_id');
+            $table->foreignId('branch_id');
             $table->string('count');
+            $table->string('price_come');
+            $table->string('price_sell');
             $table->timestamps();
         });
     }

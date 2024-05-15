@@ -110,6 +110,14 @@ class BranchController extends Controller
                 $check->update([
                     'quantity' => $check->quantity + $product['quantity'],
                 ]);
+                $check->forwardHistories()->create([
+                    'user_id' => auth()->user()->id,
+                    'branch_id' => auth()->user()->branch_id,
+                    'count' => $product['quantity'],
+                    'price_come' => $check->price_come,
+                    'price_sell' => $check->price_sell,
+                    'price_id' => $check->price_id,
+                ]);
             } else {
                 $item = Store::create([
                     'branch_id' => $branch->id,
@@ -124,6 +132,14 @@ class BranchController extends Controller
                     'quantity' => $product['quantity'],
                     'danger_count' => $store->danger_count,
                     'status' => $store->status,
+                ]);
+                $item->forwardHistories()->create([
+                    'user_id' => auth()->user()->id,
+                    'branch_id' => auth()->user()->branch_id,
+                    'count' => $product['quantity'],
+                    'price_come' => $item->price_come,
+                    'price_sell' => $item->price_sell,
+                    'price_id' => $item->price_id,
                 ]);
                 $count += 1;
                 if ($store->hasMedia('image')) {
