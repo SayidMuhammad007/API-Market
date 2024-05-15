@@ -17,7 +17,7 @@ class ReturnedStoreController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ReturnedStore::with(['user', 'store', 'price:name'])->where('branch_id', auth()->user()->id);
+        $query = ReturnedStore::with(['user', 'store', 'price:name'])->where('branch_id', auth()->user()->branch_id);
 
         // Check if search query parameter is provided
         if ($request->has('search')) {

@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Store extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
-    
+
     protected $fillable = [
         'category_id',
         'branch_id',
@@ -46,5 +47,10 @@ class Store extends Model implements HasMedia
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function forwardHistories(): HasMany
+    {
+        return $this->hasMany(ForwardHistory::class);
     }
 }

@@ -70,4 +70,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserPaymentLog::class);
     }
+
+    public function forwardHistories(): HasMany
+    {
+        return $this->hasMany(ForwardHistory::class);
+    }
 }

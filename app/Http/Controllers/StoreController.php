@@ -43,25 +43,6 @@ class StoreController extends Controller
         return response()->json($stores);
     }
 
-
-    // foreach ($stores as $store) {
-    //     $result = Store::where('barcode', $store->barcode)->where('id', '!=', $store->id)->get();
-
-    //     $otherStores = []; // Initialize an array to store other stores
-
-    //     foreach ($result as $r) {
-    //         $otherStore = [
-    //             'branch_name' => $r->branch->name, // Access branch name through relationship
-    //             'qty' => $r->quantity,
-    //         ];
-
-    //         $otherStores[] = $otherStore; // Add other store to the array
-    //     }
-
-    //     if (!empty($otherStores)) {
-    //         $store->other_stores = $otherStores; // Assign other stores array to the store
-    //     }
-    // }
     /**
      * Store a newly created resource in storage.
      */
@@ -95,6 +76,10 @@ class StoreController extends Controller
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $item->addMediaFromRequest('image')->toMediaCollection('images');
         }
+        $item->forwardHistories()->create([
+            'user_id' => auth()->user()->id,
+            'count' => $item->quantity,
+        ]);
         $branch->update(['barcode' => ++$branch->barcode]);
 
         return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->orderBy("id", "DESC")->paginate(20), 201);
@@ -113,13 +98,6 @@ class StoreController extends Controller
      */
     public function update(Request $request, Store $item)
     {
-        // if (auth()->user()->id != 1) {
-        //     return response()->json([
-        //         'success' => 'false',
-        //         'message' => 'Only admins can update'
-        //     ], 401);
-        // }
-        // Check if the category exists
         if ($request->category_id) {
             $category = Category::find($request->category_id);
             if (!$category) {
@@ -153,14 +131,10 @@ class StoreController extends Controller
         }
         // Update the item with the new data
         if ($request->branch_id) {
-            $item->update(array_merge($request->all(), ['barcode' => $branch->barcode, 'branch_id' => auth()->user()->branch_id]));
-            $branch->update(['barcode' => ++$branch->barcode]);
+            $item->update(array_merge($request->all(), ['branch_id' => auth()->user()->branch_id]));
         } else {
             $item->update(array_merge($request->all()));
         }
-
-        // Update the branch barcode
-
         // Optionally, handle updating the image
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             // Delete existing media collection if needed
@@ -171,6 +145,35 @@ class StoreController extends Controller
         }
 
         return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('status', 1)->where('branch_id', auth()->user()->branch_id)->orderBy("id", 'DESC')->paginate(20));
+    }
+
+
+    public function updateQty(Request $request, Store $item)
+    {
+        // Check if the price exists
+        if ($request->store_id) {
+            $store = Store::find($request->store_id);
+            if (!$store) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 400);
+            }
+        }
+        if (!$request->quantity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Quantity not specified'
+            ], 400);
+        }
+        $store->update([
+            'quantity' =>  $store->quantity + $request->quantity,
+        ]);
+        $store->forwardHistories()->create([
+            'user_id' => auth()->user()->id,
+            'count' => $request->quantity,
+        ]);
+        return response()->json(['status' => true]);
     }
 
     /**
