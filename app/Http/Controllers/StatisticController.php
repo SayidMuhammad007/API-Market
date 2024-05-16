@@ -331,22 +331,24 @@ class StatisticController extends Controller
             ((SELECT SUM(price) FROM order_prices 
                   INNER JOIN orders ON order_prices.order_id = orders.id
                   WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
-                 (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 1 THEN price_come 
-                 ELSE (price_come * orders.dollar) END), 0) FROM basket_prices 
-                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
-                  INNER JOIN orders ON baskets.order_id = orders.id
-                  WHERE orders.branch_id = branches.id AND DATE(basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 1)
+                 (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = baskets.store_id) = 1 THEN stores.price_come
+                 ELSE (stores.price_come * orders.dollar) END), 0) FROM order_prices 
+                  INNER JOIN orders ON order_prices.order_id = orders.id
+                  INNER JOIN baskets ON orders.id = baskets.order_id
+                  INNER JOIN stores ON baskets.store_id = stores.id
+                  WHERE orders.branch_id = branches.id AND DATE(orders.created_at) BETWEEN ? AND ?  AND order_prices.price_id = 1)
                 ) as benefit_uzs,
 
                 ((SELECT SUM(price) FROM order_prices 
-                  INNER JOIN orders ON order_prices.order_id = orders.id
-                  WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
-                 (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 2 THEN price_come 
-                 ELSE (price_come / orders.dollar) END) FROM basket_prices 
-                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
-                  INNER JOIN orders ON baskets.order_id = orders.id
-                  WHERE orders.branch_id = branches.id AND DATE(basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 2)
-                ) as benefit_usd,
+                INNER JOIN orders ON order_prices.order_id = orders.id
+                WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
+               (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = baskets.store_id) = 2 THEN stores.price_come
+               ELSE (stores.price_come * orders.dollar) END), 0) FROM order_prices 
+                INNER JOIN orders ON order_prices.order_id = orders.id
+                INNER JOIN baskets ON orders.id = baskets.order_id
+                INNER JOIN stores ON baskets.store_id = stores.id
+                WHERE orders.branch_id = branches.id AND DATE(orders.created_at) BETWEEN ? AND ?  AND order_prices.price_id = 2)
+              ) as benefit_usd,
             
                  (SELECT SUM(price) FROM order_prices 
                  INNER JOIN orders ON order_prices.order_id = orders.id
