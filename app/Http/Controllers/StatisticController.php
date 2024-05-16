@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Basket;
 use App\Models\BasketPrice;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Expence;
 use App\Models\Order;
 use App\Models\OrderPrice;
+use App\Models\Price;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -329,8 +331,8 @@ class StatisticController extends Controller
             ((SELECT SUM(price) FROM order_prices 
                   INNER JOIN orders ON order_prices.order_id = orders.id
                   WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
-                 (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 1 THEN price_come 
-                 ELSE (price_come * orders.dollar) END) FROM basket_prices 
+                 (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 1 THEN price_come 
+                 ELSE (price_come * orders.dollar) END), 0) FROM basket_prices 
                   INNER JOIN baskets ON basket_prices.basket_id = baskets.id
                   INNER JOIN orders ON baskets.order_id = orders.id
                   WHERE orders.branch_id = branches.id AND DATE(basket_prices.created_at) BETWEEN ? AND ?  AND price_id = 1)
@@ -357,9 +359,16 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish,  $start, $finish, $start, $finish,  $start, $finish,$start, $finish,$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish,  $start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
-
+                foreach ($branches as $branch) {
+                    $ben_usd = $branch->benefit_usd;
+                    $ben_uzs = $branch->benefit_uzs;
+                    $conv_usd = $ben_usd + $ben_uzs / Price::where('id', 2)->value('value');
+                    $conv_uzs = $ben_uzs + $ben_usd * Price::where('id', 2)->value('value');
+                    $branch['conv_usd'] = $conv_usd;
+                    $branch['conv_uzs'] = $conv_uzs;
+                }
             return response()->json([
                 'start' => $start,
                 'finish' => $finish,
