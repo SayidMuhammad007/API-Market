@@ -343,7 +343,7 @@ class StatisticController extends Controller
                 INNER JOIN orders ON order_prices.order_id = orders.id
                 WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
                (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = baskets.store_id) = 2 THEN stores.price_come
-               ELSE (stores.price_come * orders.dollar) END), 0) FROM order_prices 
+               ELSE (stores.price_come / orders.dollar) END), 0) FROM order_prices 
                 INNER JOIN orders ON order_prices.order_id = orders.id
                 INNER JOIN baskets ON orders.id = baskets.order_id
                 INNER JOIN stores ON baskets.store_id = stores.id
