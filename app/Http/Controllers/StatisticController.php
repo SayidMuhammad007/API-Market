@@ -370,6 +370,7 @@ class StatisticController extends Controller
                         ->where('price_id', 1);
                 })
                     ->where('price_id', 1)
+                    ->whereBetween('created_at', [$start, $finish])
                     ->sum('price_come');
                 $quantity_uzs = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
                     $query->select('id')
@@ -382,6 +383,7 @@ class StatisticController extends Controller
                             ->from('basket_prices')
                             ->where('price_id', 1);
                     })
+                    ->whereBetween('created_at', [$start, $finish])
                     ->sum('quantity');
                 $quantity_usd = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
                     $query->select('id')
