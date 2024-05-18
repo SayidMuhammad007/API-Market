@@ -280,15 +280,8 @@ class StatisticController extends Controller
                 INNER JOIN stores ON baskets.store_id = stores.id
                 WHERE orders.branch_id = branches.id AND DATE(orders.created_at) BETWEEN ? AND ?  AND order_prices.price_id = 2)
               ) as benefit_usd,
-    
-
-                (SELECT SUM(cost) FROM expences 
-                 WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 1) as expence_uzs,
-                 
-                 (SELECT SUM(cost) FROM expences 
-                 WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
                 $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
@@ -377,6 +370,15 @@ class StatisticController extends Controller
                     ->where('price_id', 2)
                     ->where('type_id', '!=', 4)
                     ->sum('price');
+                $expence_uzs = Expence::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->sum('price');
+                $expence_usd = Expence::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 2)
+                    ->sum('price');
+
 
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled;
@@ -396,6 +398,8 @@ class StatisticController extends Controller
                 $branch['customer_payment_usd'] = $customer_payment_usd;
                 $branch['to_company_payment_usd'] = $to_company_payment_usd;
                 $branch['to_company_payment_uzs'] = $to_company_payment_uzs;
+                $branch['expence_uzs'] = $expence_uzs;
+                $branch['expence_usd'] = $expence_usd;
             }
             return response()->json([
                 'start' => $start,
