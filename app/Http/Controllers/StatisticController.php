@@ -344,27 +344,45 @@ class StatisticController extends Controller
                     ->whereBetween('created_at', [$start, $finish])
                     ->pluck('id');
 
-                $orderPrices = OrderPrice::whereIn('order_id', $orderIds)
+                $selled = OrderPrice::whereIn('order_id', $orderIds)
                     ->where('price_id', 1)
-                    ->get();
+                    ->where('type_id', '!=', 5)
+                    ->sum('price');
 
-                $selled = $orderPrices->where('type_id', '!=', 5)->sum('price');
-                $selled_naqd = $orderPrices->where('type_id', 1)->sum('price');
-                $selled_click = $orderPrices->where('type_id', 3)->sum('price');
-                $selled_plastik = $orderPrices->where('type_id', 2)->sum('price');
-                $selled_back_uzs = $orderPrices->where('type_id', 5)->sum('price');
+                $selled_naqd = OrderPrice::whereIn('order_id', $orderIds)
+                    ->where('price_id', 1)
+                    ->where('type_id', 1)
+                    ->sum('price');
 
-                $sellPriceBackUsd = OrderPrice::whereIn('order_id', $orderIds)
+                $selled_click = OrderPrice::whereIn('order_id', $orderIds)
+                    ->where('price_id', 1)
+                    ->where('type_id', 3)
+                    ->sum('price');
+
+                $selled_plastik = OrderPrice::whereIn('order_id', $orderIds)
+                    ->where('price_id', 1)
+                    ->where('type_id', 2)
+                    ->sum('price');
+
+                $selled_back_uzs = OrderPrice::whereIn('order_id', $orderIds)
+                    ->where('price_id', 1)
+                    ->where('type_id', 5)
+                    ->sum('price');
+
+                $sell_price_back_usd = OrderPrice::whereIn('order_id', $orderIds)
                     ->where('price_id', 2)
                     ->where('type_id', 5)
                     ->sum('price');
 
-                $sellPriceNasiyaUsd = OrderPrice::whereIn('order_id', $orderIds)
+                $sell_price_nasiya_usd = OrderPrice::whereIn('order_id', $orderIds)
                     ->where('price_id', 2)
                     ->where('type_id', 4)
                     ->sum('price');
 
-                $sellPriceNasiyaUzs = $orderPrices->where('type_id', 4)->sum('price');
+                $sell_price_nasiya_uzs = OrderPrice::whereIn('order_id', $orderIds)
+                    ->where('price_id', 1)
+                    ->where('type_id', 4)
+                    ->sum('price');
 
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled;
@@ -373,9 +391,9 @@ class StatisticController extends Controller
                 $branch['sell_price_click'] = $selled_click;
                 $branch['sell_price_plastik'] = $selled_plastik;
                 $branch['sell_price_back_uzs'] = $selled_back_uzs;
-                $branch['sell_price_back_usd'] = $sellPriceBackUsd;
-                $branch['sell_price_nasiya_usd'] = $sellPriceNasiyaUsd;
-                $branch['sell_price_nasiya_uzs'] = $sellPriceNasiyaUzs;
+                $branch['sell_price_back_usd'] = $sell_price_back_usd;
+                $branch['sell_price_nasiya_usd'] = $sell_price_nasiya_usd;
+                $branch['sell_price_nasiya_uzs'] = $sell_price_nasiya_uzs;
             }
 
             return response()->json([
