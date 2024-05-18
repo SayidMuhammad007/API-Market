@@ -367,13 +367,31 @@ class StatisticController extends Controller
                     ->where('type_id', '!=', 5)
                     ->sum('price');
 
-                $ben_usd = $branch->benefit_usd;
-                $ben_uzs = $branch->benefit_uzs;
-                $conv_usd = $ben_usd + $ben_uzs / Price::where('id', 2)->value('value');
-                $conv_uzs = $ben_uzs + $ben_usd * Price::where('id', 2)->value('value');
-                $branch['conv_usd'] = $conv_usd;
+                $selled_naqd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->pluck('id'))
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 1)
+                    ->sum('price');
+                $selled_click = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->pluck('id'))
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 3)
+                    ->sum('price');
+                $selled_plastik = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->pluck('id'))
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 2)
+                    ->sum('price');
+
+                $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled;
                 $branch['sell_price_uzs'] = $selled;
+                $branch['sell_price_naqd'] = $selled_naqd;
+                $branch['sell_price_click'] = $selled_click;
+                $branch['sell_price_plastik'] = $selled_plastik;
             }
             return response()->json([
                 'start' => $start,
