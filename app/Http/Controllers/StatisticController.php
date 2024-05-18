@@ -368,30 +368,30 @@ class StatisticController extends Controller
 
                 foreach ($orders as $order) {
                     // Sum order_price for UZS and USD
-                    $benefit_uzs += $order->order_price->where('price_id', 1)->sum('price');
+                    $benefit_uzs +=$order->dollar;
                     $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
 
                     // Convert USD to UZS and vice versa based on the order's exchange rate
-                    if($benefit_usd > 0){
-                        $benefit_uzs += $benefit_usd * $order->dollar;
-                    }
-                    if($benefit_uzs > 0){
-                        $benefit_usd += $benefit_uzs / $order->dollar;
+                    // if($benefit_usd > 0){
+                    //     $benefit_uzs += $benefit_usd * $order->dollar;
+                    // }
+                    // if($benefit_uzs > 0){
+                    //     $benefit_usd += $benefit_uzs / $order->dollar;
 
-                    }
+                    // }
 
-                    // Sum basket prices for UZS and USD
-                    foreach ($order->baskets as $basket) {
-                        foreach ($basket->basket_price as $price) {
-                            if ($price && $price->price_id == 2) {
-                                $benefit_uzs += $price->price * $basket->quantity * $order->dollar;
-                                $benefit_usd += $price->price * $basket->quantity / $order->dollar;
-                            } else if($price && $price->price_id == 1) {
-                                $benefit_uzs += $price->price * $basket->quantity / $order->dollar;
-                                $benefit_usd += $price->price * $basket->quantity * $order->dollar;
-                            }
-                        }
-                    }
+                    // // Sum basket prices for UZS and USD
+                    // foreach ($order->baskets as $basket) {
+                    //     foreach ($basket->basket_price as $price) {
+                    //         if ($price && $price->price_id == 2) {
+                    //             $benefit_uzs += $price->price * $basket->quantity * $order->dollar;
+                    //             $benefit_usd += $price->price * $basket->quantity / $order->dollar;
+                    //         } else if($price && $price->price_id == 1) {
+                    //             $benefit_uzs += $price->price * $basket->quantity / $order->dollar;
+                    //             $benefit_usd += $price->price * $basket->quantity * $order->dollar;
+                    //         }
+                    //     }
+                    // }
                 }
 
 
