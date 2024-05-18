@@ -245,28 +245,7 @@ class StatisticController extends Controller
             (SELECT SUM(price_come) FROM forward_histories 
             WHERE branch_id = branches.id 
             AND DATE(created_at) BETWEEN ? AND ? AND price_id = 2) as tovar_oldik_usd,
-
-
-            (SELECT SUM(price) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 5 AND price_id = 1) as sell_price_back_uzs,
-
-            (SELECT SUM(price) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 5 AND price_id = 2) as sell_price_back_usd,
-
-            (SELECT SUM(price) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 4 AND price_id = 2) as sell_price_nasiya_usd,
-
-            (SELECT SUM(price) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 4 AND price_id = 1) as sell_price_nasiya_uzs,
-
+    
             (SELECT SUM(price) FROM customer_logs 
             WHERE customer_logs.branch_id = branches.id 
             AND DATE(customer_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 1) as customer_payment_uzs,
@@ -337,7 +316,7 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
                 $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
