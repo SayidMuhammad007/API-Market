@@ -383,14 +383,14 @@ class StatisticController extends Controller
                         }
                     }
                 }
-                $dollarValues = $orders->pluck('dollar');
-                $dollarAverage = $dollarValues->avg();
-                if ($benefit_usd < 0) {
-                    $benefit_usd -= $benefit_uzs / $dollarAverage;
-                }
-                if ($benefit_uzs < 0) {
-                    $benefit_uzs -= $benefit_usd * $dollarAverage;
-                }
+                // $dollarValues = $orders->pluck('dollar');
+                // $dollarAverage = $dollarValues->avg();
+                // if ($benefit_usd < 0) {
+                //     $benefit_usd -= $benefit_uzs / $dollarAverage;
+                // }
+                // if ($benefit_uzs < 0) {
+                //     $benefit_uzs -= $benefit_usd * $dollarAverage;
+                // }
 
 
 
