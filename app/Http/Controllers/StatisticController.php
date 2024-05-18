@@ -364,6 +364,7 @@ class StatisticController extends Controller
                     ->whereBetween('created_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 1)
+                    ->where('type_id', '!=', 5)
                     ->sum('price');
 
                 $ben_usd = $branch->benefit_usd;
@@ -372,6 +373,7 @@ class StatisticController extends Controller
                 $conv_uzs = $ben_uzs + $ben_usd * Price::where('id', 2)->value('value');
                 $branch['conv_usd'] = $conv_usd;
                 $branch['conv_uzs'] = $selled;
+                $branch['sell_price_uzs'] = $selled;
             }
             return response()->json([
                 'start' => $start,
