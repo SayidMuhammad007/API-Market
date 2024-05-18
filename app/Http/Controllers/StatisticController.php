@@ -231,14 +231,6 @@ class StatisticController extends Controller
     {
         if ($start != null && $finish != null) {
             $branches = Branch::selectRaw('id, name, 
-            (SELECT SUM(cost) FROM returned_stores 
-            WHERE branch_id = branches.id 
-            AND DATE(created_at) BETWEEN ? AND ? AND price_id = 1) as vozvrat_uzs,
-
-            (SELECT SUM(cost) FROM returned_stores 
-            WHERE branch_id = branches.id 
-            AND DATE(created_at) BETWEEN ? AND ? AND price_id = 2) as vozvrat_usd,
-
             (SELECT SUM(price_come) FROM forward_histories 
             WHERE branch_id = branches.id 
             AND DATE(created_at) BETWEEN ? AND ? AND price_id = 1) as tovar_oldik_uzs,
@@ -317,7 +309,7 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
                 $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
