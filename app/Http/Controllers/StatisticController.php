@@ -358,67 +358,19 @@ class StatisticController extends Controller
                     ->whereBetween('created_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->sum('cost');
-                // $price_come_uzs = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
-                //     $query->select('id')
-                //         ->from('baskets')
-                //         ->whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                //             $query->select('id')
-                //                 ->from('orders')
-                //                 ->where('branch_id', $branch->id)
-                //                 ->whereBetween('created_at', [$start, $finish]);
-                //         })
-                //         ->where('price_id', 1);
-                // })
-                //     ->where('price_id', 1)
-                //     ->sum('price_come');
-                // $quantity_uzs = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                //     $query->select('id')
-                //         ->from('orders')
-                //         ->whereBetween('created_at', [$start, $finish])
-                //         ->where('branch_id', $branch->id);
-                // })
-                //     ->whereHas('basket_price', function ($query) {
-                //         $query->select('basket_id')
-                //             ->from('basket_prices')
-                //             ->where('price_id', 1);
-                //     })
-                //     ->sum('quantity');
-                // $quantity_usd = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                //     $query->select('id')
-                //         ->from('orders')
-                //         ->whereBetween('created_at', [$start, $finish])
-                //         ->where('branch_id', $branch->id);
-                // })
-                //     ->whereHas('basket_price', function ($query) {
-                //         $query->select('basket_id')
-                //             ->from('basket_prices')
-                //             ->where('price_id', 2);
-                //     })
-                //     ->sum('quantity');
-                // $price_come_usd = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
-                //     $query->select('id')
-                //         ->from('baskets')
-                //         ->whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                //             $query->select('id')
-                //                 ->from('orders')
-                //                 ->where('branch_id', $branch->id)
-                //                 ->whereBetween('created_at', [$start, $finish]);
-                //         })
-                //         ->where('price_id', 2);
-                // })
-                //     ->where('price_id', 2)
-                //     ->sum('price_come');
                 $orders = Order::where('branch_id', $branch->id)
                     ->whereBetween('created_at', [$start, $finish])
-                    ->with('order_price') // Eager load the relationship to avoid N+1 queries
+                    ->with(['order_price', 'baskets'])
                     ->get();
 
                 $benefit_uzs = 0;
                 $benefit_usd = 0;
 
                 foreach ($orders as $order) {
-                    $benefit_uzs += $order->order_price->where('price_id', 1)->sum('price');
-                    $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
+                    $benefit_uzs += $order->order_price->where('price_id', 1)->sum('order_price.price');
+                    $benefit_usd += $order->order_price->where('price_id', 2)->sum('order_price.price');
+                    // $basketPrice = BasketPrice::where('basket_id', $order->baskets()->pluck)
+                    // foreach()
                 }
 
                 $branch['conv_usd'] = 0;
