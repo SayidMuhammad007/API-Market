@@ -382,7 +382,7 @@ class StatisticController extends Controller
                 $branch['expence_uzs'] = $expence_uzs;
                 $branch['expence_usd'] = $expence_usd;
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
-                $branch['kassa_uzs'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
+                $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
             }
             return response()->json([
                 'start' => $start,
