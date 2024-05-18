@@ -361,12 +361,12 @@ class StatisticController extends Controller
                 $price_come_uzs = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
                     $query->select('id')
                         ->from('baskets')
-                        ->whereIn('order_id', function ($query) use ($branch) {
+                        ->whereIn('order_id', function ($query) use ($branch, $start, $finish) {
                             $query->select('id')
                                 ->from('orders')
-                                ->where('branch_id', $branch->id);
+                                ->where('branch_id', $branch->id)
+                                ->whereBetween('created_at', [$start, $finish]);
                         })
-                        ->whereBetween('created_at', [$start, $finish])
                         ->where('price_id', 1);
                 })
                     ->where('price_id', 1)
@@ -374,9 +374,9 @@ class StatisticController extends Controller
                 $quantity_uzs = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
                     $query->select('id')
                         ->from('orders')
+                        ->whereBetween('created_at', [$start, $finish])
                         ->where('branch_id', $branch->id);
                 })
-                    ->whereBetween('created_at', [$start, $finish])
                     ->whereHas('basket_price', function ($query) {
                         $query->select('basket_id')
                             ->from('basket_prices')
@@ -386,9 +386,9 @@ class StatisticController extends Controller
                 $quantity_usd = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
                     $query->select('id')
                         ->from('orders')
+                        ->whereBetween('created_at', [$start, $finish])
                         ->where('branch_id', $branch->id);
                 })
-                    ->whereBetween('created_at', [$start, $finish])
                     ->whereHas('basket_price', function ($query) {
                         $query->select('basket_id')
                             ->from('basket_prices')
@@ -398,12 +398,12 @@ class StatisticController extends Controller
                 $price_come_usd = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
                     $query->select('id')
                         ->from('baskets')
-                        ->whereIn('order_id', function ($query) use ($branch) {
+                        ->whereIn('order_id', function ($query) use ($branch, $start, $finish) {
                             $query->select('id')
                                 ->from('orders')
-                                ->where('branch_id', $branch->id);
+                                ->where('branch_id', $branch->id)
+                                ->whereBetween('created_at', [$start, $finish]);
                         })
-                        ->whereBetween('created_at', [$start, $finish])
                         ->where('price_id', 2);
                 })
                     ->where('price_id', 2)
