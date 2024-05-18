@@ -374,6 +374,7 @@ class StatisticController extends Controller
                     // Sum basket prices for UZS and USD
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
+                            return response()->json($price);
                             if ($price && $price->price_id == 2) {
                                 $benefit_usd -= $price->price_come * $basket->quantity;
                             } else if ($price && $price->price_id == 1) {
