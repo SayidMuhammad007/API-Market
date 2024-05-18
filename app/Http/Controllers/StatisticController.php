@@ -375,18 +375,16 @@ class StatisticController extends Controller
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
                             $store_price = Store::where('id', $price->store_id)->first();
-                            // return response()->json($store_price);
                             if ($price && $store_price->price_id == 2) {
                                 $benefit_usd -= $store_price->price_come * $basket->quantity;
                             } else if ($price && $store_price->price_id == 1) {
-                                // return response()->json([$basket->quantity, $store_price]);
-                                $benefit_uzs -= $price->store_price * $basket->quantity;
+                                $benefit_uzs -= $store_price->price_come * $basket->quantity;
                             }
                         }
                     }
                 }
-                $dollarValues = $orders->pluck('dollar'); // Extract 'dollar' values from orders
-                $dollarAverage = $dollarValues->avg(); // Calculate the average
+                $dollarValues = $orders->pluck('dollar');
+                $dollarAverage = $dollarValues->avg();
                 if ($benefit_usd < 0) {
                     $benefit_usd -= $benefit_uzs / $dollarAverage;
                 }
