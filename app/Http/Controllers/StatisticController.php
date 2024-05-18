@@ -246,26 +246,6 @@ class StatisticController extends Controller
             WHERE branch_id = branches.id 
             AND DATE(created_at) BETWEEN ? AND ? AND price_id = 2) as tovar_oldik_usd,
 
-            (SELECT SUM(price) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 1 AND type_id != 5) as sell_price_uzs,
-
-            (SELECT SUM(price) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 1) as sell_price_naqd,
-
-            (SELECT SUM(price) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 2) as sell_price_plastik,
-
-            (SELECT SUM(price) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id = 3) as sell_price_click,
-
 
             (SELECT SUM(price) FROM order_prices 
             INNER JOIN orders ON order_prices.order_id = orders.id
@@ -360,31 +340,31 @@ class StatisticController extends Controller
                 ->setBindings([$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
-                $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                $orderIds = Order::where('branch_id', $branch->id)
                     ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
+                    ->pluck('id');
+
+                $orderPrices = OrderPrice::whereIn('order_id', $orderIds)
                     ->where('price_id', 1)
-                    ->where('type_id', '!=', 5)
+                    ->get();
+
+                $selled = $orderPrices->where('type_id', '!=', 5)->sum('price');
+                $selled_naqd = $orderPrices->where('type_id', 1)->sum('price');
+                $selled_click = $orderPrices->where('type_id', 3)->sum('price');
+                $selled_plastik = $orderPrices->where('type_id', 2)->sum('price');
+                $selled_back_uzs = $orderPrices->where('type_id', 5)->sum('price');
+
+                $sellPriceBackUsd = OrderPrice::whereIn('order_id', $orderIds)
+                    ->where('price_id', 2)
+                    ->where('type_id', 5)
                     ->sum('price');
 
-                $selled_naqd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '=', 1)
+                $sellPriceNasiyaUsd = OrderPrice::whereIn('order_id', $orderIds)
+                    ->where('price_id', 2)
+                    ->where('type_id', 4)
                     ->sum('price');
-                $selled_click = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '=', 3)
-                    ->sum('price');
-                $selled_plastik = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '=', 2)
-                    ->sum('price');
+
+                $sellPriceNasiyaUzs = $orderPrices->where('type_id', 4)->sum('price');
 
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled;
@@ -392,7 +372,12 @@ class StatisticController extends Controller
                 $branch['sell_price_naqd'] = $selled_naqd;
                 $branch['sell_price_click'] = $selled_click;
                 $branch['sell_price_plastik'] = $selled_plastik;
+                $branch['sell_price_back_uzs'] = $selled_back_uzs;
+                $branch['sell_price_back_usd'] = $sellPriceBackUsd;
+                $branch['sell_price_nasiya_usd'] = $sellPriceNasiyaUsd;
+                $branch['sell_price_nasiya_uzs'] = $sellPriceNasiyaUzs;
             }
+
             return response()->json([
                 'start' => $start,
                 'finish' => $finish,
