@@ -318,69 +318,43 @@ class StatisticController extends Controller
                  ')
                 ->setBindings([$start, $finish,$start, $finish,$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
-            foreach ($branches as $branch) {
-                $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '!=', 5)
-                    ->sum('price');
-
-                $selled_naqd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '=', 1)
-                    ->sum('price');
-                $selled_click = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '=', 3)
-                    ->sum('price');
-                $selled_plastik = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '=', 2)
-                    ->sum('price');
-
-                $selled_back_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '=', 5)
-                    ->sum('price');
-                $sell_price_back_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 2)
-                    ->where('type_id', '=', 5)
-                    ->sum('price');
-                $sell_price_nasiya_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 2)
-                    ->where('type_id', '=', 4)
-                    ->sum('price');
-                $sell_price_nasiya_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->pluck('id'))
-                    ->where('price_id', 1)
-                    ->where('type_id', '=', 4)
-                    ->sum('price');
-
-                $branch['conv_usd'] = 0;
-                $branch['conv_uzs'] = $selled;
-                $branch['sell_price_uzs'] = $selled;
-                $branch['sell_price_naqd'] = $selled_naqd;
-                $branch['sell_price_click'] = $selled_click;
-                $branch['sell_price_plastik'] = $selled_plastik;
-                $branch['sell_price_back_uzs'] = $selled_back_uzs;
-                $branch['sell_price_back_usd'] = $sell_price_back_usd;
-                $branch['sell_price_nasiya_usd'] = $sell_price_nasiya_usd;
-                $branch['sell_price_nasiya_uzs'] = $sell_price_nasiya_uzs;
-            }
+                foreach ($branches as $branch) {
+                    $orderIds = Order::where('branch_id', $branch->id)
+                        ->whereBetween('created_at', [$start, $finish])
+                        ->pluck('id');
+                
+                    $orderPrices = OrderPrice::whereIn('order_id', $orderIds)
+                        ->where('price_id', 1)
+                        ->get()
+                        ->groupBy('type_id');
+                
+                    $selled = $orderPrices->except(5)->sum('price');
+                    $selled_naqd = $orderPrices->get(1, collect())->sum('price');
+                    $selled_click = $orderPrices->get(3, collect())->sum('price');
+                    $selled_plastik = $orderPrices->get(2, collect())->sum('price');
+                    $selled_back_uzs = $orderPrices->get(5, collect())->sum('price');
+                    
+                    $orderPricesUsd = OrderPrice::whereIn('order_id', $orderIds)
+                        ->where('price_id', 2)
+                        ->get()
+                        ->groupBy('type_id');
+                
+                    $sell_price_back_usd = $orderPricesUsd->get(5, collect())->sum('price');
+                    $sell_price_nasiya_usd = $orderPricesUsd->get(4, collect())->sum('price');
+                    $sell_price_nasiya_uzs = $orderPrices->get(4, collect())->sum('price');
+                
+                    $branch['conv_usd'] = 0;
+                    $branch['conv_uzs'] = $selled;
+                    $branch['sell_price_uzs'] = $selled;
+                    $branch['sell_price_naqd'] = $selled_naqd;
+                    $branch['sell_price_click'] = $selled_click;
+                    $branch['sell_price_plastik'] = $selled_plastik;
+                    $branch['sell_price_back_uzs'] = $selled_back_uzs;
+                    $branch['sell_price_back_usd'] = $sell_price_back_usd;
+                    $branch['sell_price_nasiya_usd'] = $sell_price_nasiya_usd;
+                    $branch['sell_price_nasiya_uzs'] = $sell_price_nasiya_uzs;
+                }
+                
             return response()->json([
                 'start' => $start,
                 'finish' => $finish,
