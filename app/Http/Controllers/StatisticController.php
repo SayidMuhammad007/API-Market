@@ -377,9 +377,9 @@ class StatisticController extends Controller
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
                             if ($price && $price->price_id == 2) {
-                                $benefit_usd -= (float)$price->price_come * $basket->quantity;
+                                $benefit_usd -= $price->price_come * $basket->quantity;
                             } else if ($price && $price->price_id == 1) {
-                                $benefit_uzs -= (float)$price->price_come * $basket->quantity;
+                                $benefit_uzs -= $price->price_come * $basket->quantity;
                             }
                         }
                     }
