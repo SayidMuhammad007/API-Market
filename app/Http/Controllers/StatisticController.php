@@ -376,17 +376,17 @@ class StatisticController extends Controller
                     $benefit_usd += $benefit_uzs / $order->dollar;
 
                     // Sum basket prices for UZS and USD
-                    foreach ($order->baskets as $basket) {
-                        foreach ($basket->basket_price as $price) {
-                            if ($price && $price->price_id == 2) {
-                                $benefit_uzs += $price->price * $basket->quantity * $order->dollar;
-                                $benefit_usd += $price->price * $basket->quantity / $order->dollar;
-                            } else if($price && $price->price_id == 1) {
-                                $benefit_uzs += $price->price * $basket->quantity / $order->dollar;
-                                $benefit_usd += $price->price * $basket->quantity * $order->dollar;
-                            }
-                        }
-                    }
+                    // foreach ($order->baskets as $basket) {
+                    //     foreach ($basket->basket_price as $price) {
+                    //         if ($price && $price->price_id == 2) {
+                    //             $benefit_uzs += $price->price * $basket->quantity * $order->dollar;
+                    //             $benefit_usd += $price->price * $basket->quantity / $order->dollar;
+                    //         } else if($price && $price->price_id == 1) {
+                    //             $benefit_uzs += $price->price * $basket->quantity / $order->dollar;
+                    //             $benefit_usd += $price->price * $basket->quantity * $order->dollar;
+                    //         }
+                    //     }
+                    // }
                 }
 
 
