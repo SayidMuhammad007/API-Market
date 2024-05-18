@@ -249,7 +249,7 @@ class StatisticController extends Controller
             (SELECT SUM(price) FROM order_prices 
             INNER JOIN orders ON order_prices.order_id = orders.id
             WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as sell_price_uzs,
+            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 1 AND type_id != 5) as sell_price_uzs,
 
             (SELECT SUM(price) FROM order_prices 
             INNER JOIN orders ON order_prices.order_id = orders.id
@@ -332,7 +332,7 @@ class StatisticController extends Controller
                   INNER JOIN orders ON order_prices.order_id = orders.id
                   WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
                  (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = baskets.store_id) = 1 THEN stores.price_come
-                 ELSE (stores.price_come * orders.dollar) END), 0) FROM order_prices 
+                 ELSE (stores.price_come * baskets.quantity * orders.dollar) END), 0) FROM order_prices 
                   INNER JOIN orders ON order_prices.order_id = orders.id
                   INNER JOIN baskets ON orders.id = baskets.order_id
                   INNER JOIN stores ON baskets.store_id = stores.id
@@ -343,17 +343,13 @@ class StatisticController extends Controller
                 INNER JOIN orders ON order_prices.order_id = orders.id
                 WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
                (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = baskets.store_id) = 2 THEN stores.price_come
-               ELSE (stores.price_come / orders.dollar) END), 0) FROM order_prices 
+               ELSE (stores.price_come  * baskets.quantity / orders.dollar) END), 0) FROM order_prices 
                 INNER JOIN orders ON order_prices.order_id = orders.id
                 INNER JOIN baskets ON orders.id = baskets.order_id
                 INNER JOIN stores ON baskets.store_id = stores.id
                 WHERE orders.branch_id = branches.id AND DATE(orders.created_at) BETWEEN ? AND ?  AND order_prices.price_id = 2)
               ) as benefit_usd,
-            
-                 (SELECT SUM(price) FROM order_prices 
-                 INNER JOIN orders ON order_prices.order_id = orders.id
-                 WHERE orders.branch_id = branches.id 
-                 AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as sell_price_usd,
+    
 
                 (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 1) as expence_uzs,
@@ -361,7 +357,7 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish,  $start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
                 foreach ($branches as $branch) {
                     $ben_usd = $branch->benefit_usd;
