@@ -393,6 +393,7 @@ class StatisticController extends Controller
                 if ($benefit_uzs > 0) {
                     $benefit_usd -= $benefit_uzs / $dollarAverage;
                 }
+                $benefit_usd = $dollarAverage;
 
 
 
@@ -419,8 +420,8 @@ class StatisticController extends Controller
                 $branch['expence_usd'] = $expence_usd;
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
-                $branch['price_come_uzs'] = $benefit_uzs;
-                $branch['price_come_usd'] = $benefit_usd;
+                $branch['benefit_uzs0'] = $benefit_uzs;
+                $branch['benefit_usd0'] = $benefit_usd;
                 // $branch['test'] = $quantity_uzs;
                 // $branch['quantity_usd'] = $quantity_usd;
                 // $branch['price_come_usd'] = $selled_usd - $price_come_usd * $quantity_usd;
