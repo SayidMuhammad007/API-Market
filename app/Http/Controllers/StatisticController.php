@@ -383,15 +383,16 @@ class StatisticController extends Controller
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
                             if ($price && $price->price_id == 2) {
-                                $benefit_uzs += $price->price * $basket->quantity * (float)$order->dollar;
-                                $benefit_usd += $price->price * $basket->quantity / (float)$order->dollar;
+                                $benefit_uzs += (float)$price->price_come * $basket->quantity * (float)$order->dollar;
+                                $benefit_usd += (float)$price->price_come * $basket->quantity / (float)$order->dollar;
                             } else if ($price && $price->price_id == 1) {
-                                $benefit_uzs += $price->price * $basket->quantity / (float)$order->dollar;
-                                $benefit_usd += $price->price * $basket->quantity * (float)$order->dollar;
+                                $benefit_uzs += (float)$price->price_come * $basket->quantity / (float)$order->dollar;
+                                $benefit_usd += (float)$price->price_come * $basket->quantity * (float)$order->dollar;
                             }
                         }
                     }
                 }
+
 
 
                 $branch['conv_usd'] = 0;
