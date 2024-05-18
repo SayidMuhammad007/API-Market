@@ -377,7 +377,7 @@ class StatisticController extends Controller
                             if ($price && $price->price_id == 2) {
                                 $benefit_usd -= $price->price_come * $basket->quantity;
                             } else if ($price && $price->price_id == 1) {
-                            return response()->json($basket);
+                            return response()->json($basket->quantity, $price->price_come);
                                 $benefit_uzs -= $price->price_come * $basket->quantity;
                             }
                         }
