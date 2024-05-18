@@ -384,12 +384,12 @@ class StatisticController extends Controller
                         }
                     }
                     // Convert USD to UZS and vice versa based on the order's exchange rate
-                    if ($benefit_usd > 0) {
-                        $benefit_uzs += $benefit_usd * $order->dollar;
-                    }
-                    if ($benefit_uzs > 0) {
-                        $benefit_usd += $benefit_uzs / $order->dollar;
-                    }
+                    // if ($benefit_usd > 0) {
+                    //     $benefit_uzs += $benefit_usd * $order->dollar;
+                    // }
+                    // if ($benefit_uzs > 0) {
+                    //     $benefit_usd += $benefit_uzs / $order->dollar;
+                    // }
                 }
 
 
