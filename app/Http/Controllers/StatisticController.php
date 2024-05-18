@@ -279,7 +279,7 @@ class StatisticController extends Controller
                 INNER JOIN baskets ON orders.id = baskets.order_id
                 INNER JOIN stores ON baskets.store_id = stores.id
                 WHERE orders.branch_id = branches.id AND DATE(orders.created_at) BETWEEN ? AND ?  AND order_prices.price_id = 2)
-              ) as benefit_usd,
+              ) as benefit_usd
                  ')
                 ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
