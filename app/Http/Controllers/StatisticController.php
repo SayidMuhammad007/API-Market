@@ -393,7 +393,6 @@ class StatisticController extends Controller
                 if ($benefit_uzs > 0) {
                     $benefit_usd -= $benefit_uzs / $dollarAverage;
                 }
-                $benefit_usd = $dollarAverage;
 
 
 
