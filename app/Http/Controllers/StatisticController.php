@@ -6,7 +6,9 @@ use App\Models\Basket;
 use App\Models\BasketPrice;
 use App\Models\Branch;
 use App\Models\Customer;
+use App\Models\CustomerLog;
 use App\Models\Expence;
+use App\Models\ForwardHistory;
 use App\Models\Order;
 use App\Models\OrderPrice;
 use App\Models\Price;
@@ -231,22 +233,6 @@ class StatisticController extends Controller
     {
         if ($start != null && $finish != null) {
             $branches = Branch::selectRaw('id, name, 
-            (SELECT SUM(price_come) FROM forward_histories 
-            WHERE branch_id = branches.id 
-            AND DATE(created_at) BETWEEN ? AND ? AND price_id = 1) as tovar_oldik_uzs,
-
-            (SELECT SUM(price_come) FROM forward_histories 
-            WHERE branch_id = branches.id 
-            AND DATE(created_at) BETWEEN ? AND ? AND price_id = 2) as tovar_oldik_usd,
-    
-            (SELECT SUM(price) FROM customer_logs 
-            WHERE customer_logs.branch_id = branches.id 
-            AND DATE(customer_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 1) as customer_payment_uzs,
-
-            (SELECT SUM(price) FROM customer_logs 
-            WHERE customer_logs.branch_id = branches.id 
-            AND DATE(customer_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 2) as customer_payment_usd,
-
             (SELECT SUM(price) FROM company_logs 
             WHERE company_logs.branch_id = branches.id 
             AND DATE(company_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 2) as to_company_payment_usd,
@@ -309,7 +295,7 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
                 $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
@@ -370,6 +356,25 @@ class StatisticController extends Controller
                     ->whereBetween('created_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->sum('cost');
+                $tovar_oldik_uzs = ForwardHistory::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->sum('price_come');
+                $tovar_oldik_usd = ForwardHistory::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 2)
+                    ->sum('price_come');
+                $customer_payment_uzs = CustomerLog::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', '!=', 4)
+                    ->sum('price');
+                $customer_payment_usd = CustomerLog::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 2)
+                    ->where('type_id', '!=', 4)
+                    ->sum('price');
+
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled;
                 $branch['sell_price_uzs'] = $selled;
@@ -382,6 +387,10 @@ class StatisticController extends Controller
                 $branch['sell_price_nasiya_uzs'] = $sell_price_nasiya_uzs;
                 $branch['vozvrat_uzs'] = $vozvrat_uzs;
                 $branch['vozvrat_usd'] = $vozvrat_usd;
+                $branch['tovar_oldik_uzs'] = $tovar_oldik_uzs;
+                $branch['tovar_oldik_usd'] = $tovar_oldik_usd;
+                $branch['customer_payment_uzs'] = $customer_payment_uzs;
+                $branch['customer_payment_usd'] = $customer_payment_usd;
             }
             return response()->json([
                 'start' => $start,
