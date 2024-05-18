@@ -374,11 +374,14 @@ class StatisticController extends Controller
                 $quantity_uzs = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
                     $query->select('id')
                         ->from('orders')
-                        ->where('branch_id', $branch->id)
-                        ->whereBetween('created_at', [$start, $finish])
-                        ->where('price_id', 1);
+                        ->where('branch_id', $branch->id);
                 })
-                    ->where('price_id', 1)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereHas('basket_price', function ($query) {
+                        $query->select('basket_id')
+                            ->from('basket_prices')
+                            ->where('price_id', 1); // Assuming price_id is the condition
+                    })
                     ->sum('quantity');
                 $price_come_usd = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
                     $query->select('id')
@@ -388,7 +391,8 @@ class StatisticController extends Controller
                                 ->from('orders')
                                 ->where('branch_id', $branch->id);
                         })
-                        ->whereBetween('created_at', [$start, $finish]);
+                        ->whereBetween('created_at', [$start, $finish])
+                        ->where('price_id', 2);
                 })
                     ->where('price_id', 2)
                     ->sum('price_come');
@@ -416,8 +420,8 @@ class StatisticController extends Controller
                 $branch['expence_usd'] = $expence_usd;
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
-                $branch['price_come_uzs'] = $selled_uzs - $price_come_uzs * $quantity_uzs;
-                $branch['test'] = $price_come_uzs;
+                $branch['price_come_uzs'] = $selled_uzs - $price_come_uzs;
+                $branch['test'] = $quantity_uzs;
                 $branch['price_come_usd'] = $selled_usd - $price_come_usd;
             }
             return response()->json([
