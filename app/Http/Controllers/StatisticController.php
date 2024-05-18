@@ -359,15 +359,20 @@ class StatisticController extends Controller
                  ')
                 ->setBindings([$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
-                foreach ($branches as $branch) {
-                    // $selled = Order::where('branch', $branch->id)->order_price()->sum('price');
-                    $ben_usd = $branch->benefit_usd;
-                    $ben_uzs = $branch->benefit_uzs;
-                    $conv_usd = $ben_usd + $ben_uzs / Price::where('id', 2)->value('value');
-                    $conv_uzs = $ben_uzs + $ben_usd * Price::where('id', 2)->value('value');
-                    $branch['conv_usd'] = $conv_usd;
-                    $branch['conv_uzs'] = $conv_uzs;
-                }
+            foreach ($branches as $branch) {
+                $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->pluck('id'))
+                    ->where('price_id', 1)
+                    ->sum('price');
+
+                $ben_usd = $branch->benefit_usd;
+                $ben_uzs = $branch->benefit_uzs;
+                $conv_usd = $ben_usd + $ben_uzs / Price::where('id', 2)->value('value');
+                $conv_uzs = $ben_uzs + $ben_usd * Price::where('id', 2)->value('value');
+                $branch['conv_usd'] = $conv_usd;
+                $branch['conv_uzs'] = $selled;
+            }
             return response()->json([
                 'start' => $start,
                 'finish' => $finish,
