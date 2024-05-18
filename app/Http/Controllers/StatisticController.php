@@ -363,31 +363,42 @@ class StatisticController extends Controller
                     ->with(['order_price', 'baskets'])
                     ->get();
 
-                $benefit_uzs = 0;
-                $benefit_usd = 0;
-
-                foreach ($orders as $order) {
-                    // Sum order_price for UZS and USD
-                    $benefit_uzs += $order->order_price->where('price_id', 1)->sum('price');
-                    $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
-
-                    // Convert USD to UZS and vice versa based on the order's exchange rate
-                    // $benefit_uzs += $benefit_usd * $order->dollar;
-                    // $benefit_usd += $benefit_uzs / $order->dollar;
-
-                    // Sum basket prices for UZS and USD
-                    // foreach ($order->baskets as $basket) {
-                    //     foreach ($basket->basket_price as $price) {
-                    //         if ($price && $price->price_id == 2) {
-                    //             $benefit_uzs += $price->price * $basket->quantity * $order->dollar;
-                    //             $benefit_usd += $price->price * $basket->quantity / $order->dollar;
-                    //         } else if($price && $price->price_id == 1) {
-                    //             $benefit_uzs += $price->price * $basket->quantity / $order->dollar;
-                    //             $benefit_usd += $price->price * $basket->quantity * $order->dollar;
-                    //         }
-                    //     }
-                    // }
-                }
+                    $total_benefit_uzs = 0;
+                    $total_benefit_usd = 0;
+                    
+                    foreach ($orders as $order) {
+                        // Sum order_price for UZS and USD
+                        $order_benefit_uzs = $order->order_price->where('price_id', 1)->sum('price');
+                        $order_benefit_usd = $order->order_price->where('price_id', 2)->sum('price');
+                    
+                        // Convert USD to UZS based on the order's exchange rate
+                        $order_benefit_uzs += $order_benefit_usd * $order->dollar;
+                    
+                        // Convert UZS to USD based on the order's exchange rate
+                        $order_benefit_usd += $order_benefit_uzs / $order->dollar;
+                    
+                        // Sum basket prices for UZS and USD
+                        foreach ($order->baskets as $basket) {
+                            foreach ($basket->basket_price as $price) {
+                                if ($price->price_id == 2) {
+                                    $order_benefit_uzs += $price->price * $basket->quantity * $order->dollar;
+                                    $order_benefit_usd += $price->price * $basket->quantity / $order->dollar;
+                                } else {
+                                    $order_benefit_uzs += $price->price * $basket->quantity / $order->dollar;
+                                    $order_benefit_usd += $price->price * $basket->quantity * $order->dollar;
+                                }
+                            }
+                        }
+                    
+                        // Add order benefits to total benefits
+                        $total_benefit_uzs += $order_benefit_uzs;
+                        $total_benefit_usd += $order_benefit_usd;
+                    }
+                    
+                    // Now you have the total benefits in UZS and USD
+                    $benefit_uzs = $total_benefit_uzs;
+                    $benefit_usd = $total_benefit_usd;
+                    
 
 
                 $branch['conv_usd'] = 0;
