@@ -372,8 +372,8 @@ class StatisticController extends Controller
                     $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
 
                     // Convert USD to UZS and vice versa based on the order's exchange rate
-                    $benefit_uzs += $benefit_usd * $order->dollar;
-                    $benefit_usd += $benefit_uzs / $order->dollar;
+                    // $benefit_uzs += $benefit_usd * $order->dollar;
+                    // $benefit_usd += $benefit_uzs / $order->dollar;
 
                     // Sum basket prices for UZS and USD
                     // foreach ($order->baskets as $basket) {
