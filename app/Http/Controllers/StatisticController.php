@@ -388,12 +388,12 @@ class StatisticController extends Controller
                 if ($benefit_usd < 0) {
                     $ben = $benefit_usd;
                     $benefit_usd += $benefit_uzs / $dollarAverage;
-                    $benefit_uzs -= $ben * $dollarAverage;
+                    $benefit_uzs += $ben * $dollarAverage;
                 }
                 else if ($benefit_uzs < 0) {
                     $ben = $benefit_uzs;
                     $benefit_uzs += $benefit_usd * $dollarAverage;
-                    $benefit_usd -= $ben / $dollarAverage;
+                    $benefit_usd += $ben / $dollarAverage;
                 }
 
 
