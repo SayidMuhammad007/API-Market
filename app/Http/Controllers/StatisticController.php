@@ -373,11 +373,11 @@ class StatisticController extends Controller
                 $expence_uzs = Expence::where('branch_id', $branch->id)
                     ->whereBetween('created_at', [$start, $finish])
                     ->where('price_id', 1)
-                    ->sum('price');
+                    ->sum('cost');
                 $expence_usd = Expence::where('branch_id', $branch->id)
                     ->whereBetween('created_at', [$start, $finish])
                     ->where('price_id', 2)
-                    ->sum('price');
+                    ->sum('cost');
 
 
                 $branch['conv_usd'] = 0;
