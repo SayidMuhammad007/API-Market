@@ -358,58 +358,62 @@ class StatisticController extends Controller
                     ->whereBetween('created_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->sum('cost');
-                $price_come_uzs = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
-                    $query->select('id')
-                        ->from('baskets')
-                        ->whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                            $query->select('id')
-                                ->from('orders')
-                                ->where('branch_id', $branch->id)
-                                ->whereBetween('created_at', [$start, $finish]);
-                        })
-                        ->where('price_id', 1);
-                })
-                    ->where('price_id', 1)
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->sum('price_come');
-                $quantity_uzs = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                    $query->select('id')
-                        ->from('orders')
-                        ->whereBetween('created_at', [$start, $finish])
-                        ->where('branch_id', $branch->id);
-                })
-                    ->whereHas('basket_price', function ($query) {
-                        $query->select('basket_id')
-                            ->from('basket_prices')
-                            ->where('price_id', 1);
-                    })
-                    ->whereBetween('created_at', [$start, $finish])
-                    ->sum('quantity');
-                $quantity_usd = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                    $query->select('id')
-                        ->from('orders')
-                        ->whereBetween('created_at', [$start, $finish])
-                        ->where('branch_id', $branch->id);
-                })
-                    ->whereHas('basket_price', function ($query) {
-                        $query->select('basket_id')
-                            ->from('basket_prices')
-                            ->where('price_id', 2);
-                    })
-                    ->sum('quantity');
-                $price_come_usd = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
-                    $query->select('id')
-                        ->from('baskets')
-                        ->whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                            $query->select('id')
-                                ->from('orders')
-                                ->where('branch_id', $branch->id)
-                                ->whereBetween('created_at', [$start, $finish]);
-                        })
-                        ->where('price_id', 2);
-                })
-                    ->where('price_id', 2)
-                    ->sum('price_come');
+                // $price_come_uzs = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
+                //     $query->select('id')
+                //         ->from('baskets')
+                //         ->whereIn('order_id', function ($query) use ($branch, $start, $finish) {
+                //             $query->select('id')
+                //                 ->from('orders')
+                //                 ->where('branch_id', $branch->id)
+                //                 ->whereBetween('created_at', [$start, $finish]);
+                //         })
+                //         ->where('price_id', 1);
+                // })
+                //     ->where('price_id', 1)
+                //     ->sum('price_come');
+                // $quantity_uzs = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
+                //     $query->select('id')
+                //         ->from('orders')
+                //         ->whereBetween('created_at', [$start, $finish])
+                //         ->where('branch_id', $branch->id);
+                // })
+                //     ->whereHas('basket_price', function ($query) {
+                //         $query->select('basket_id')
+                //             ->from('basket_prices')
+                //             ->where('price_id', 1);
+                //     })
+                //     ->sum('quantity');
+                // $quantity_usd = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
+                //     $query->select('id')
+                //         ->from('orders')
+                //         ->whereBetween('created_at', [$start, $finish])
+                //         ->where('branch_id', $branch->id);
+                // })
+                //     ->whereHas('basket_price', function ($query) {
+                //         $query->select('basket_id')
+                //             ->from('basket_prices')
+                //             ->where('price_id', 2);
+                //     })
+                //     ->sum('quantity');
+                // $price_come_usd = BasketPrice::whereIn('basket_id', function ($query) use ($branch, $start, $finish) {
+                //     $query->select('id')
+                //         ->from('baskets')
+                //         ->whereIn('order_id', function ($query) use ($branch, $start, $finish) {
+                //             $query->select('id')
+                //                 ->from('orders')
+                //                 ->where('branch_id', $branch->id)
+                //                 ->whereBetween('created_at', [$start, $finish]);
+                //         })
+                //         ->where('price_id', 2);
+                // })
+                //     ->where('price_id', 2)
+                //     ->sum('price_come');
+                $orders = Order::where('branch_id', $branch->id)->whereBetween('created_at', [$start, $finish]);
+                $benefit_uzs = 0;
+                $benefit_usd = 0;
+                foreach ($orders as $order){
+                     $benefit_uzs = $order->order_price()->sum('price');   
+                }
 
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled_uzs;
@@ -434,10 +438,10 @@ class StatisticController extends Controller
                 $branch['expence_usd'] = $expence_usd;
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
-                $branch['price_come_uzs'] = $selled_uzs - $price_come_uzs * $quantity_uzs;
-                $branch['test'] = $quantity_uzs;
-                $branch['quantity_usd'] = $quantity_usd;
-                $branch['price_come_usd'] = $selled_usd - $price_come_usd * $quantity_usd;
+                // $branch['price_come_uzs'] = $selled_uzs - $price_come_uzs * $quantity_uzs;
+                // $branch['test'] = $quantity_uzs;
+                // $branch['quantity_usd'] = $quantity_usd;
+                // $branch['price_come_usd'] = $selled_usd - $price_come_usd * $quantity_usd;
             }
             return response()->json([
                 'start' => $start,
