@@ -420,7 +420,7 @@ class StatisticController extends Controller
                 $branch['expence_usd'] = $expence_usd;
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
-                $branch['price_come_uzs'] = $selled_uzs - $price_come_uzs;
+                $branch['price_come_uzs'] = $selled_uzs - $price_come_uzs * $quantity_uzs;
                 $branch['test'] = $quantity_uzs;
                 $branch['price_come_usd'] = $selled_usd - $price_come_usd;
             }
