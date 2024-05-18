@@ -388,8 +388,7 @@ class StatisticController extends Controller
                                 ->from('orders')
                                 ->where('branch_id', $branch->id);
                         })
-                        ->whereBetween('created_at', [$start, $finish])
-                        ->where('price_id', 2);
+                        ->whereBetween('created_at', [$start, $finish]);
                 })
                     ->where('price_id', 2)
                     ->sum('price_come');
