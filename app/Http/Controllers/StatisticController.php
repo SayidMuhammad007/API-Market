@@ -234,31 +234,6 @@ class StatisticController extends Controller
     {
         if ($start != null && $finish != null) {
             $branches = Branch::selectRaw('id, name, 
-            (IFNULL((SELECT SUM(IFNULL(price, 0)) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 1), 0) - IFNULL((SELECT SUM(IFNULL(cost, 0)) FROM expences 
-            WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 1), 0) - 
-            IFNULL((SELECT SUM(IFNULL(price, 0)) FROM company_logs 
-            WHERE company_logs.branch_id = branches.id 
-            AND DATE(company_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 1), 0) + IFNULL((SELECT SUM(IFNULL(price, 0)) FROM customer_logs 
-            WHERE customer_logs.branch_id = branches.id 
-            AND DATE(customer_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 1), 0))as kassa_uzs,
-
-
-
-            (IFNULL((SELECT SUM(IFNULL(price, 0)) FROM order_prices 
-            INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
-            AND DATE(order_prices.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 2), 0) - IFNULL((SELECT SUM(IFNULL(cost, 0)) FROM expences 
-            WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2), 0) - 
-            IFNULL((SELECT SUM(IFNULL(price, 0)) FROM company_logs 
-            WHERE company_logs.branch_id = branches.id 
-            AND DATE(company_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 2), 0) + IFNULL((SELECT SUM(IFNULL(price, 0)) FROM customer_logs 
-            WHERE customer_logs.branch_id = branches.id 
-            AND DATE(customer_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 2), 0))as kassa_usd,
-
-
             ((SELECT SUM(price) FROM order_prices 
                   INNER JOIN orders ON order_prices.order_id = orders.id
                   WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
@@ -281,13 +256,19 @@ class StatisticController extends Controller
                 WHERE orders.branch_id = branches.id AND DATE(orders.created_at) BETWEEN ? AND ?  AND order_prices.price_id = 2)
               ) as benefit_usd
                  ')
-                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
-                $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                $selled_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
                     ->whereBetween('created_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 1)
+                    ->where('type_id', '!=', 5)
+                    ->sum('price');
+                $selled_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->pluck('id'))
+                    ->where('price_id', 2)
                     ->where('type_id', '!=', 5)
                     ->sum('price');
 
@@ -379,10 +360,10 @@ class StatisticController extends Controller
                     ->where('price_id', 2)
                     ->sum('cost');
 
-
                 $branch['conv_usd'] = 0;
-                $branch['conv_uzs'] = $selled;
-                $branch['sell_price_uzs'] = $selled;
+                $branch['conv_uzs'] = $selled_uzs;
+                $branch['sell_price_uzs'] = $selled_uzs;
+                $branch['sell_price_usd'] = $selled_usd;
                 $branch['sell_price_naqd'] = $selled_naqd;
                 $branch['sell_price_click'] = $selled_click;
                 $branch['sell_price_plastik'] = $selled_plastik;
@@ -400,6 +381,8 @@ class StatisticController extends Controller
                 $branch['to_company_payment_uzs'] = $to_company_payment_uzs;
                 $branch['expence_uzs'] = $expence_uzs;
                 $branch['expence_usd'] = $expence_usd;
+                $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
+                $branch['kassa_uzs'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
             }
             return response()->json([
                 'start' => $start,
