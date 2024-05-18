@@ -379,19 +379,20 @@ class StatisticController extends Controller
                             if ($price && $store_price->price_id == 2) {
                                 $benefit_usd -= $store_price->price_come * $basket->quantity;
                             } else if ($price && $store_price->price_id == 1) {
-                            // return response()->json([$basket->quantity, $store_price]);
+                                // return response()->json([$basket->quantity, $store_price]);
                                 $benefit_uzs -= $price->store_price * $basket->quantity;
                             }
                         }
                     }
                     // Convert USD to UZS and vice versa based on the order's exchange rate
-                    if ($benefit_usd > 0) {
+                    // if ($benefit_usd > 0) {
                         $benefit_uzs += $benefit_usd * $order->dollar;
-                    }
-                    if ($benefit_uzs > 0) {
+                    // }
+                    // if ($benefit_uzs > 0) {
                         $benefit_usd += $benefit_uzs / $order->dollar;
-                    }
+                    // }
                 }
+
 
 
 
