@@ -290,7 +290,6 @@ class StatisticController extends Controller
                     ->where('price_id', 1)
                     ->where('type_id', '=', 2)
                     ->sum('price');
-
                 $selled_back_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
                     ->whereBetween('created_at', [$start, $finish])
                     ->pluck('id'))
@@ -359,6 +358,12 @@ class StatisticController extends Controller
                     ->whereBetween('created_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->sum('cost');
+                $price_come_uzs = BasketPrice::whereIn('basket_id', function () use ($branch, $start, $finish) {
+                    return Basket::whereIn('order_id', Order::where('branch_id', $branch->id)->pluck('id'))
+                    ->whereBetween('created_at', [$start, $finish])->where('price_id', 1);
+                })
+                    ->where('price_id', 1)
+                    ->sum('price_come');
 
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled_uzs;
@@ -383,6 +388,8 @@ class StatisticController extends Controller
                 $branch['expence_usd'] = $expence_usd;
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
+                $branch['price_come_uzs'] = $price_come_uzs;
+
             }
             return response()->json([
                 'start' => $start,
