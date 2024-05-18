@@ -10,6 +10,7 @@ use App\Models\Expence;
 use App\Models\Order;
 use App\Models\OrderPrice;
 use App\Models\Price;
+use App\Models\ReturnedStore;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -316,7 +317,7 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish,$start, $finish,$start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish,  $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
                 $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
@@ -369,7 +370,14 @@ class StatisticController extends Controller
                     ->where('price_id', 1)
                     ->where('type_id', '=', 4)
                     ->sum('price');
-
+                $vozvrat_uzs = ReturnedStore::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->sum('price');
+                $vozvrat_usd = ReturnedStore::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 2)
+                    ->sum('price');
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled;
                 $branch['sell_price_uzs'] = $selled;
@@ -380,6 +388,8 @@ class StatisticController extends Controller
                 $branch['sell_price_back_usd'] = $sell_price_back_usd;
                 $branch['sell_price_nasiya_usd'] = $sell_price_nasiya_usd;
                 $branch['sell_price_nasiya_uzs'] = $sell_price_nasiya_uzs;
+                $branch['vozvrat_uzs'] = $vozvrat_uzs;
+                $branch['vozvrat_usd'] = $vozvrat_usd;
             }
             return response()->json([
                 'start' => $start,
