@@ -408,11 +408,17 @@ class StatisticController extends Controller
                 // })
                 //     ->where('price_id', 2)
                 //     ->sum('price_come');
-                $orders = Order::where('branch_id', $branch->id)->whereBetween('created_at', [$start, $finish]);
+                $orders = Order::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->with('order_price') // Eager load the relationship to avoid N+1 queries
+                    ->get();
+
                 $benefit_uzs = 0;
                 $benefit_usd = 0;
-                foreach ($orders as $order){
-                     $benefit_uzs = $order->order_price()->sum('price');   
+
+                foreach ($orders as $order) {
+                    $benefit_uzs += $order->order_price->where('price_id', 1)->sum('price');
+                    $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
                 }
 
                 $branch['conv_usd'] = 0;
