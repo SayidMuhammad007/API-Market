@@ -374,12 +374,12 @@ class StatisticController extends Controller
                     // Sum basket prices for UZS and USD
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
-                            $store_price = Store::where('id', $price->store_id)->value('price_come');
-                            if ($price && $price->price_id == 2) {
-                                $benefit_usd -= $price->price_come * $basket->quantity;
-                            } else if ($price && $price->price_id == 1) {
-                            return response()->json([$basket->quantity, $store_price]);
-                                $benefit_uzs -= $price->price_come * $basket->quantity;
+                            $store_price = Store::where('id', $price->store_id)->get();
+                            if ($price && $store_price->price_id == 2) {
+                                $benefit_usd -= $store_price->price_come * $basket->quantity;
+                            } else if ($price && $store_price->price_id == 1) {
+                            // return response()->json([$basket->quantity, $store_price]);
+                                $benefit_uzs -= $price->store_price * $basket->quantity;
                             }
                         }
                     }
