@@ -367,11 +367,28 @@ class StatisticController extends Controller
                 $benefit_usd = 0;
 
                 foreach ($orders as $order) {
-                    $benefit_uzs += $order->order_price->where('price_id', 1)->sum('order_price.price');
-                    $benefit_usd += $order->order_price->where('price_id', 2)->sum('order_price.price');
-                    // $basketPrice = BasketPrice::where('basket_id', $order->baskets()->pluck)
-                    // foreach()
+                    // Sum order_price for UZS and USD
+                    $benefit_uzs += $order->order_price->where('price_id', 1)->sum('price');
+                    $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
+
+                    // Convert USD to UZS and vice versa based on the order's exchange rate
+                    $benefit_uzs += $benefit_usd * $order->dollar;
+                    $benefit_usd += $benefit_uzs / $order->dollar;
+
+                    // Sum basket prices for UZS and USD
+                    foreach ($order->baskets as $basket) {
+                        foreach ($basket->basket_price as $price) {
+                            if ($price->price_id == 2) {
+                                $benefit_uzs += $price->price * $basket->quantity * $order->dollar;
+                                $benefit_usd += $price->price * $basket->quantity / $order->dollar;
+                            } else {
+                                $benefit_uzs += $price->price * $basket->quantity / $order->dollar;
+                                $benefit_usd += $price->price * $basket->quantity * $order->dollar;
+                            }
+                        }
+                    }
                 }
+
 
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled_uzs;
@@ -397,6 +414,7 @@ class StatisticController extends Controller
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
                 $branch['price_come_uzs'] = $benefit_uzs;
+                $branch['price_come_usd'] = $benefit_usd;
                 // $branch['test'] = $quantity_uzs;
                 // $branch['quantity_usd'] = $quantity_usd;
                 // $branch['price_come_usd'] = $selled_usd - $price_come_usd * $quantity_usd;
