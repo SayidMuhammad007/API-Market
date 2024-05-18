@@ -371,23 +371,24 @@ class StatisticController extends Controller
                     $benefit_uzs += $order->order_price->where('price_id', 1)->sum('price');
                     $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
 
-                    // Convert USD to UZS and vice versa based on the order's exchange rate
-                    // if ($benefit_usd > 0) {
-                    //     $benefit_uzs += (float)$benefit_usd * (float)$order->dollar;
-                    // }
-                    // if ($benefit_uzs > 0) {
-                    //     $benefit_usd += (float)$benefit_uzs / (float)$order->dollar;
-                    // }
+
 
                     // Sum basket prices for UZS and USD
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
                             if ($price && $price->price_id == 2) {
-                                $benefit_usd += (float)$price->price_come * $basket->quantity;
+                                $benefit_usd -= (float)$price->price_come * $basket->quantity;
                             } else if ($price && $price->price_id == 1) {
-                                $benefit_uzs += (float)$price->price_come * $basket->quantity;
+                                $benefit_uzs -= (float)$price->price_come * $basket->quantity;
                             }
                         }
+                    }
+                    // Convert USD to UZS and vice versa based on the order's exchange rate
+                    if ($benefit_usd > 0) {
+                        $benefit_uzs += (float)$benefit_usd * (float)$order->dollar;
+                    }
+                    if ($benefit_uzs > 0) {
+                        $benefit_usd += (float)$benefit_uzs / (float)$order->dollar;
                     }
                 }
 
