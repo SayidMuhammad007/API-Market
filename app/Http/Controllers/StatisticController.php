@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Basket;
 use App\Models\BasketPrice;
 use App\Models\Branch;
+use App\Models\CompanyLog;
 use App\Models\Customer;
 use App\Models\CustomerLog;
 use App\Models\Expence;
@@ -233,14 +234,6 @@ class StatisticController extends Controller
     {
         if ($start != null && $finish != null) {
             $branches = Branch::selectRaw('id, name, 
-            (SELECT SUM(price) FROM company_logs 
-            WHERE company_logs.branch_id = branches.id 
-            AND DATE(company_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 2) as to_company_payment_usd,
-
-            (SELECT SUM(price) FROM company_logs 
-            WHERE company_logs.branch_id = branches.id 
-            AND DATE(company_logs.created_at) BETWEEN ? AND ? AND type_id != 4 AND price_id = 1) as to_company_payment_uzs,
-
             (IFNULL((SELECT SUM(IFNULL(price, 0)) FROM order_prices 
             INNER JOIN orders ON order_prices.order_id = orders.id
             WHERE orders.branch_id = branches.id 
@@ -295,7 +288,7 @@ class StatisticController extends Controller
                  (SELECT SUM(cost) FROM expences 
                  WHERE expences.branch_id = branches.id AND DATE(expences.created_at) BETWEEN ? AND ?   AND price_id = 2) as expence_usd
                  ')
-                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
+                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
                 $selled = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
@@ -374,6 +367,16 @@ class StatisticController extends Controller
                     ->where('price_id', 2)
                     ->where('type_id', '!=', 4)
                     ->sum('price');
+                $to_company_payment_uzs = CompanyLog::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', '!=', 4)
+                    ->sum('price');
+                $to_company_payment_usd = CompanyLog::where('branch_id', $branch->id)
+                    ->whereBetween('created_at', [$start, $finish])
+                    ->where('price_id', 2)
+                    ->where('type_id', '!=', 4)
+                    ->sum('price');
 
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled;
@@ -391,6 +394,8 @@ class StatisticController extends Controller
                 $branch['tovar_oldik_usd'] = $tovar_oldik_usd;
                 $branch['customer_payment_uzs'] = $customer_payment_uzs;
                 $branch['customer_payment_usd'] = $customer_payment_usd;
+                $branch['to_company_payment_usd'] = $to_company_payment_usd;
+                $branch['to_company_payment_uzs'] = $to_company_payment_uzs;
             }
             return response()->json([
                 'start' => $start,
