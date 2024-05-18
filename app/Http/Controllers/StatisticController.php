@@ -373,11 +373,11 @@ class StatisticController extends Controller
                 $vozvrat_uzs = ReturnedStore::where('branch_id', $branch->id)
                     ->whereBetween('created_at', [$start, $finish])
                     ->where('price_id', 1)
-                    ->sum('price');
+                    ->sum('cost');
                 $vozvrat_usd = ReturnedStore::where('branch_id', $branch->id)
                     ->whereBetween('created_at', [$start, $finish])
                     ->where('price_id', 2)
-                    ->sum('price');
+                    ->sum('cost');
                 $branch['conv_usd'] = 0;
                 $branch['conv_uzs'] = $selled;
                 $branch['sell_price_uzs'] = $selled;
