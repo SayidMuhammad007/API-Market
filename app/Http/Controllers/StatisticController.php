@@ -388,10 +388,10 @@ class StatisticController extends Controller
                 $dollarValues = $orders->pluck('dollar'); // Extract 'dollar' values from orders
                 $dollarAverage = $dollarValues->avg(); // Calculate the average
                 if ($benefit_usd > 0) {
-                    $benefit_uzs += $benefit_usd * $dollarAverage;
+                    $benefit_uzs -= $benefit_usd * $dollarAverage;
                 }
                 if ($benefit_uzs > 0) {
-                    $benefit_usd += $benefit_uzs / $dollarAverage;
+                    $benefit_usd -= $benefit_uzs / $dollarAverage;
                 }
 
 
