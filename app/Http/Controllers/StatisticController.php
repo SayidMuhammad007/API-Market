@@ -372,10 +372,10 @@ class StatisticController extends Controller
                     ->where('price_id', 1)
                     ->sum('price_come');
                 $quantity_uzs = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                    $query->select('id')
-                        ->from('orders')
+                    $query->from('orders')
                         ->whereBetween('created_at', [$start, $finish])
-                        ->where('branch_id', $branch->id);
+                        ->where('branch_id', $branch->id)
+                        ->plcuk('id');
                 })
                     ->whereHas('basket_price', function ($query) {
                         $query->select('basket_id')
@@ -384,10 +384,10 @@ class StatisticController extends Controller
                     })
                     ->sum('quantity');
                 $quantity_usd = Basket::whereIn('order_id', function ($query) use ($branch, $start, $finish) {
-                    $query->select('id')
-                        ->from('orders')
+                    $query->from('orders')
                         ->whereBetween('created_at', [$start, $finish])
-                        ->where('branch_id', $branch->id);
+                        ->where('branch_id', $branch->id)
+                        ->plcuk('id');
                 })
                     ->whereHas('basket_price', function ($query) {
                         $query->select('basket_id')
