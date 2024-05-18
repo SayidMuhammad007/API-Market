@@ -233,30 +233,8 @@ class StatisticController extends Controller
     public function tradeStat($start = null, $finish = null)
     {
         if ($start != null && $finish != null) {
-            $branches = Branch::selectRaw('id, name, 
-            ((SELECT SUM(price) FROM order_prices 
-                  INNER JOIN orders ON order_prices.order_id = orders.id
-                  WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 1) -  
-                 (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = baskets.store_id) = 1 THEN stores.price_come
-                 ELSE (stores.price_come * baskets.quantity * orders.dollar) END), 0) FROM order_prices 
-                  INNER JOIN orders ON order_prices.order_id = orders.id
-                  INNER JOIN baskets ON orders.id = baskets.order_id
-                  INNER JOIN stores ON baskets.store_id = stores.id
-                  WHERE orders.branch_id = branches.id AND DATE(orders.created_at) BETWEEN ? AND ?  AND order_prices.price_id = 1)
-                ) as benefit_uzs,
-
-                ((SELECT SUM(price) FROM order_prices 
-                INNER JOIN orders ON order_prices.order_id = orders.id
-                WHERE orders.branch_id = branches.id AND DATE(order_prices.created_at) BETWEEN ? AND ?  AND price_id = 2) -  
-               (SELECT IFNULL(SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = baskets.store_id) = 2 THEN stores.price_come
-               ELSE (stores.price_come  * baskets.quantity / orders.dollar) END), 0) FROM order_prices 
-                INNER JOIN orders ON order_prices.order_id = orders.id
-                INNER JOIN baskets ON orders.id = baskets.order_id
-                INNER JOIN stores ON baskets.store_id = stores.id
-                WHERE orders.branch_id = branches.id AND DATE(orders.created_at) BETWEEN ? AND ?  AND order_prices.price_id = 2)
-              ) as benefit_usd
+            $branches = Branch::selectRaw('id, name
                  ')
-                ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
             foreach ($branches as $branch) {
                 $selled_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
@@ -389,8 +367,7 @@ class StatisticController extends Controller
                     $ben = $benefit_usd;
                     $benefit_usd += $benefit_uzs / $dollarAverage;
                     $benefit_uzs += $ben * $dollarAverage;
-                }
-                else if ($benefit_uzs < 0) {
+                } else if ($benefit_uzs < 0) {
                     $ben = $benefit_uzs;
                     $benefit_uzs += $benefit_usd * $dollarAverage;
                     $benefit_usd += $ben / $dollarAverage;
@@ -398,8 +375,8 @@ class StatisticController extends Controller
 
 
 
-                $branch['conv_usd'] = 0;
-                $branch['conv_uzs'] = $selled_uzs;
+                $branch['conv_usd'] = null;
+                $branch['conv_uzs'] = null;
                 $branch['sell_price_uzs'] = $selled_uzs;
                 $branch['sell_price_usd'] = $selled_usd;
                 $branch['sell_price_naqd'] = $selled_naqd;
@@ -421,11 +398,8 @@ class StatisticController extends Controller
                 $branch['expence_usd'] = $expence_usd;
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
-                $branch['benefit_uzss0'] = $benefit_uzs;
-                $branch['benefit_usd0'] = $benefit_usd;
-                // $branch['test'] = $quantity_uzs;
-                // $branch['quantity_usd'] = $quantity_usd;
-                // $branch['price_come_usd'] = $selled_usd - $price_come_usd * $quantity_usd;
+                $branch['benefit_uzs'] = $benefit_uzs;
+                $branch['benefit_usd'] = $benefit_usd;
             }
             return response()->json([
                 'start' => $start,
