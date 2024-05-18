@@ -435,7 +435,7 @@ class StatisticController extends Controller
                 $branch['price_come_uzs'] = $selled_uzs - $price_come_uzs * $quantity_uzs;
                 $branch['test'] = $quantity_uzs;
                 $branch['quantity_usd'] = $quantity_usd;
-                $branch['price_come_usd'] = $selled_usd - $price_come_usd;
+                $branch['price_come_usd'] = $selled_usd - $price_come_usd * $quantity_usd;
             }
             return response()->json([
                 'start' => $start,
