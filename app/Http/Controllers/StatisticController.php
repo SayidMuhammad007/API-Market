@@ -375,6 +375,7 @@ class StatisticController extends Controller
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
                             $store_price = Store::where('id', $price->store_id)->get();
+                            return response()->json($store_price);
                             if ($price && $store_price->price_id == 2) {
                                 $benefit_usd -= $store_price->price_come * $basket->quantity;
                             } else if ($price && $store_price->price_id == 1) {
