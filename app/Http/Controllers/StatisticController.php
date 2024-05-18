@@ -375,9 +375,9 @@ class StatisticController extends Controller
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
                             $store_price = Store::where('id', $price->store_id)->first();
-                            if ($price && $store_price->price_id == 2) {
+                            if ($store_price && $store_price->price_id == 2) {
                                 $benefit_usd -= $store_price->price_come * $basket->quantity;
-                            } else if ($price && $store_price->price_id == 1) {
+                            } else if ($store_price && $store_price->price_id == 1) {
                                 $benefit_uzs -= $store_price->price_come * $basket->quantity;
                             }
                         }
