@@ -350,28 +350,28 @@ class StatisticController extends Controller
                     $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
 
                     // Sum basket prices for UZS and USD
-                    // foreach ($order->baskets as $basket) {
-                    //     foreach ($basket->basket_price as $price) {
-                    //         $store_price = Store::where('id', $price->store_id)->first();
-                    //         if ($store_price && $store_price->price_id == 2) {
-                    //             $benefit_usd -= $store_price->price_come * $basket->quantity;
-                    //         } else if ($store_price && $store_price->price_id == 1) {
-                    //             $benefit_uzs -= $store_price->price_come * $basket->quantity;
-                    //         }
-                    //     }
-                    // }
+                    foreach ($order->baskets as $basket) {
+                        foreach ($basket->basket_price as $price) {
+                            $store_price = Store::where('id', $price->store_id)->first();
+                            if ($store_price && $store_price->price_id == 2) {
+                                $benefit_usd -= $store_price->price_come * $basket->quantity;
+                            } else if ($store_price && $store_price->price_id == 1) {
+                                $benefit_uzs -= $store_price->price_come * $basket->quantity;
+                            }
+                        }
+                    }
                 }
-                // $dollarValues = $orders->pluck('dollar');
-                // $dollarAverage = $dollarValues->avg();
-                // if ($benefit_usd < 0) {
-                //     $ben = $benefit_usd;
-                //     $benefit_usd += $benefit_uzs / $dollarAverage;
-                //     $benefit_uzs += $ben * $dollarAverage;
-                // } else if ($benefit_uzs < 0) {
-                //     $ben = $benefit_uzs;
-                //     $benefit_uzs += $benefit_usd * $dollarAverage;
-                //     $benefit_usd += $ben / $dollarAverage;
-                // }
+                $dollarValues = $orders->pluck('dollar');
+                $dollarAverage = $dollarValues->avg();
+                if ($benefit_usd < 0) {
+                    $ben = $benefit_usd;
+                    $benefit_usd += $benefit_uzs / $dollarAverage;
+                    $benefit_uzs += $ben * $dollarAverage;
+                } else if ($benefit_uzs < 0) {
+                    $ben = $benefit_uzs;
+                    $benefit_uzs += $benefit_usd * $dollarAverage;
+                    $benefit_usd += $ben / $dollarAverage;
+                }
 
 
 
