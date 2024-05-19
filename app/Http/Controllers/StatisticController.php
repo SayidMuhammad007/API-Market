@@ -238,106 +238,106 @@ class StatisticController extends Controller
                 ->get();
             foreach ($branches as $branch) {
                 $selled_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 1)
                     ->where('type_id', '!=', 5)
                     ->sum('price');
                 $selled_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 2)
                     ->where('type_id', '!=', 5)
                     ->sum('price');
 
                 $selled_naqd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 1)
                     ->where('type_id', '=', 1)
                     ->sum('price');
                 $selled_click = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 1)
                     ->where('type_id', '=', 3)
                     ->sum('price');
                 $selled_plastik = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 1)
                     ->where('type_id', '=', 2)
                     ->sum('price');
                 $selled_back_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 1)
                     ->where('type_id', '=', 5)
                     ->sum('price');
                 $sell_price_back_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 2)
                     ->where('type_id', '=', 5)
                     ->sum('price');
                 $sell_price_nasiya_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 2)
                     ->where('type_id', '=', 4)
                     ->sum('price');
                 $sell_price_nasiya_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->pluck('id'))
                     ->where('price_id', 1)
                     ->where('type_id', '=', 4)
                     ->sum('price');
                 $vozvrat_uzs = ReturnedStore::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 1)
                     ->sum('cost');
                 $vozvrat_usd = ReturnedStore::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->sum('cost');
                 $tovar_oldik_uzs = ForwardHistory::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 1)
                     ->sum('price_come');
                 $tovar_oldik_usd = ForwardHistory::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->sum('price_come');
                 $customer_payment_uzs = CustomerLog::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 1)
                     ->where('type_id', '!=', 4)
                     ->sum('price');
                 $customer_payment_usd = CustomerLog::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->where('type_id', '!=', 4)
                     ->sum('price');
                 $to_company_payment_uzs = CompanyLog::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 1)
                     ->where('type_id', '!=', 4)
                     ->sum('price');
                 $to_company_payment_usd = CompanyLog::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->where('type_id', '!=', 4)
                     ->sum('price');
                 $expence_uzs = Expence::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 1)
                     ->sum('cost');
                 $expence_usd = Expence::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 2)
                     ->sum('cost');
                 $orders = Order::where('branch_id', $branch->id)
-                    ->whereBetween('created_at', [$start, $finish])
+                    ->whereBetween('updated_at', [$start, $finish])
                     ->with(['order_price', 'baskets'])
                     ->get();
 
