@@ -377,6 +377,7 @@ class StatisticController extends Controller
 
                 $branch['conv_usd'] = null;
                 $branch['conv_uzs'] = null;
+                $branch['dollarAverage'] = $dollarAverage;
                 $branch['sell_price_uzs'] = $selled_uzs;
                 $branch['sell_price_usd'] = $selled_usd;
                 $branch['sell_price_naqd'] = $selled_naqd;
