@@ -340,15 +340,20 @@ class StatisticController extends Controller
                     ->whereBetween('updated_at', [$start, $finish])
                     ->with(['order_price', 'baskets'])
                     ->get();
+                
 
                 $benefit_uzs = 0;
                 $benefit_usd = 0;
-
+                $come_to_store_uzs = 0;
+                $come_to_store_usd = 0;
                 foreach ($orders as $order) {
                     // Sum order_price for UZS and USD
                     $benefit_uzs += $order->order_price->where('price_id', 1)->sum('price');
                     $benefit_usd += $order->order_price->where('price_id', 2)->sum('price');
-
+                    foreach ($order->baskets as $basket) {
+                        $come_to_store_uzs += $basket->basket_price->where('old_price_id', 1)->sum('price_come');
+                        $come_to_store_usd += $basket->basket_price->where('old_price_id', 2)->sum('price_come');
+                    }
                     // Sum basket prices for UZS and USD
                     foreach ($order->baskets as $basket) {
                         foreach ($basket->basket_price as $price) {
@@ -401,6 +406,8 @@ class StatisticController extends Controller
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
                 $branch['benefit_uzs'] = $benefit_uzs;
                 $branch['benefit_usd'] = $benefit_usd;
+                $branch['price_come_uzs'] = $come_to_store_uzs;
+                $branch['price_come_usd'] = $come_to_store_usd;
             }
             return response()->json([
                 'start' => $start,

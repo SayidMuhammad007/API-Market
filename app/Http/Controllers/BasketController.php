@@ -97,6 +97,8 @@ class BasketController extends Controller
                     'price_come' => $product->price_come,
                     'total' => $sell_price * $basket->quantity,
                     'price_id' => $product->price_id,
+                    'qty' => $product->quantity,
+                    'old_price_id' => $product->price_id,
                     'store_id' => $item['product_id'],
                 ]);
             }
@@ -271,6 +273,7 @@ class BasketController extends Controller
             'agreed_price' => $request->agreed_price,
             'price_sell' => $product->price_sell,
             'price_come' => $product->price_come,
+            'old_price_id' => $product->price_id,
             'total' => $request->agreed_price * $request->quantity,
             'price_id' => $request->price_id,
         ]);

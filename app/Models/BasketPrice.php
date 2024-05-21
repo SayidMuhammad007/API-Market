@@ -17,6 +17,8 @@ class BasketPrice extends Model
         'price_sell',
         'price_id',
         'store_id',
+        'old_price_id',
+        'qty'
     ];
 
     public function basket()
