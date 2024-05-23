@@ -200,7 +200,6 @@ class StoreController extends Controller
     public function calculate()
     {
         $user = auth()->user();
-        $current_dollar = Price::where('id', 2)->value('value');
         $stores = Store::where('branch_id', $user->branch_id)->where('status', 1)->get();
         $count = $stores->count();
         $sum = $stores->where('price_id', 1)->sum(function ($store) {
@@ -209,15 +208,22 @@ class StoreController extends Controller
         $dollar = $stores->where('price_id', 2)->sum(function ($store) {
             return $store->price_sell * $store->quantity;
         });
+
+        $sum_come = $stores->where('price_id', 1)->sum(function ($store) {
+            return $store->price_come * $store->quantity;
+        });
+        $dollar_come = $stores->where('price_id', 2)->sum(function ($store) {
+            return $store->price_come * $store->quantity;
+        });
         return response()->json([
             'count' => $count,
             'calculate' => [
                 'sum' => $sum,
                 'dollar' => $dollar,
             ],
-            'total' => [
-                'sum' => $sum + $dollar * $current_dollar,
-                'dollar' => $dollar + $sum / $current_dollar
+            'calculate_come' => [
+                'sum_come' => $sum_come,
+                'dollar' => $dollar_come
             ]
 
         ]);

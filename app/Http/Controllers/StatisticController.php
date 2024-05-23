@@ -340,7 +340,7 @@ class StatisticController extends Controller
                     ->whereBetween('updated_at', [$start, $finish])
                     ->with(['order_price', 'baskets'])
                     ->get();
-                
+
 
                 $benefit_uzs = 0;
                 $benefit_usd = 0;
@@ -420,6 +420,109 @@ class StatisticController extends Controller
                 'msg' => 'Iltimos sanani tanlang!'
             ]);
         }
+    }
+
+    public function allStat()
+    {
+        $branches = Branch::selectRaw('id, name
+                 ')
+            ->get();
+        foreach ($branches as $branch) {
+            $selled_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                ->pluck('id'))
+                ->where('price_id', 2)
+                ->where('type_id', '!=', 5)
+                ->sum('price');
+            $selled_naqd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                ->pluck('id'))
+                ->where('price_id', 1)
+                ->where('type_id', '=', 1)
+                ->sum('price');
+            $selled_click = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                ->pluck('id'))
+                ->where('price_id', 1)
+                ->where('type_id', '=', 3)
+                ->sum('price');
+            $selled_plastik = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
+                ->pluck('id'))
+                ->where('price_id', 1)
+                ->where('type_id', '=', 2)
+                ->sum('price');
+            $customer_payment_uzs_naqd = CustomerLog::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 1)
+                ->sum('price');
+            $customer_payment_plastik = CustomerLog::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 2)
+                ->sum('price');
+            $customer_payment_uzs_click = CustomerLog::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 3)
+                ->sum('price');
+            $customer_payment_usd = CustomerLog::where('branch_id', $branch->id)
+                ->where('price_id', 2)
+                ->where('type_id', '!=', 4)
+                ->sum('price');
+            $to_company_payment_uzs_naqd = CompanyLog::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 1)
+                ->sum('price');
+            $to_company_payment_uzs_plastik = CompanyLog::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 2)
+                ->sum('price');
+            $to_company_payment_click = CompanyLog::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 3)
+                ->sum('price');
+            $to_company_payment_usd = CompanyLog::where('branch_id', $branch->id)
+                ->where('price_id', 2)
+                ->where('type_id', '!=', 4)
+                ->sum('price');
+            $expence_uzs_naqd = Expence::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 1)
+                ->sum('cost');
+            $expence_uzs_plastik = Expence::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 2)
+                ->sum('cost');
+            $expence_uzs_click = Expence::where('branch_id', $branch->id)
+                ->where('price_id', 1)
+                ->where('type_id', 3)
+                ->sum('cost');
+            $expence_usd = Expence::where('branch_id', $branch->id)
+                ->where('price_id', 2)
+                ->sum('cost');
+            $user = auth()->user();
+            $stores = Store::where('branch_id', $user->branch_id)->where('status', 1)->get();
+            $sum = $stores->where('price_id', 1)->sum(function ($store) {
+                return $store->price_sell * $store->quantity;
+            });
+            $dollar = $stores->where('price_id', 2)->sum(function ($store) {
+                return $store->price_sell * $store->quantity;
+            });
+
+            $sum_come = $stores->where('price_id', 1)->sum(function ($store) {
+                return $store->price_come * $store->quantity;
+            });
+            $dollar_come = $stores->where('price_id', 2)->sum(function ($store) {
+                return $store->price_come * $store->quantity;
+            });
+
+            $branch['kassa_uzs_naqd'] = $selled_naqd - $expence_uzs_naqd - $to_company_payment_uzs_naqd + $customer_payment_uzs_naqd;
+            $branch['kassa_uzs_plastik'] = $selled_plastik - $expence_uzs_plastik - $to_company_payment_uzs_plastik + $customer_payment_plastik;
+            $branch['kassa_uzs_click'] = $selled_click - $expence_uzs_click - $to_company_payment_click + $customer_payment_uzs_click;
+            $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
+            $branch['sum_sell'] = $sum;
+            $branch['dollar_sell'] = $dollar;
+            $branch['sum_come'] = $sum_come;
+            $branch['dollar_come'] = $dollar_come;
+        }
+        return response()->json([
+            'data' => $branches
+        ]);
     }
 
     /**
