@@ -495,13 +495,12 @@ class StatisticController extends Controller
             $expence_usd = Expence::where('branch_id', $branch->id)
                 ->where('price_id', 2)
                 ->sum('cost');
-            $user = auth()->user();
-            $stores = Store::where('branch_id', $user->branch_id)->where('status', 1)->get();
+            $stores = Store::where('branch_id', $branch->id)->where('status', 1)->get();
             $sum = $stores->where('price_id', 1)->sum(function ($store) {
-                return $store->price_sell * $store->quantity;
+                return $store->price_wholesale * $store->quantity;
             });
             $dollar = $stores->where('price_id', 2)->sum(function ($store) {
-                return $store->price_sell * $store->quantity;
+                return $store->price_wholesale * $store->quantity;
             });
 
             $sum_come = $stores->where('price_id', 1)->sum(function ($store) {
