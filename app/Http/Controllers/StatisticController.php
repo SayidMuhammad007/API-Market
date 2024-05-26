@@ -497,18 +497,19 @@ class StatisticController extends Controller
                 ->sum('cost');
             $stores = Store::where('branch_id', $branch->id)->where('status', 1)->get();
             $sum = $stores->where('price_id', 1)->sum(function ($store) {
-                return $store->price_wholesale * $store->quantity;
+                return (float) $store->price_wholesale * (int) $store->quantity;
             });
             $dollar = $stores->where('price_id', 2)->sum(function ($store) {
-                return $store->price_wholesale * $store->quantity;
+                return (float) $store->price_wholesale * (int) $store->quantity;
             });
-
+            
             $sum_come = $stores->where('price_id', 1)->sum(function ($store) {
-                return $store->price_come * $store->quantity;
+                return (float) $store->price_come * (int) $store->quantity;
             });
             $dollar_come = $stores->where('price_id', 2)->sum(function ($store) {
-                return $store->price_come * $store->quantity;
+                return (float) $store->price_come * (int) $store->quantity;
             });
+            
 
             $branch['kassa_uzs_naqd'] = $selled_naqd - $expence_uzs_naqd - $to_company_payment_uzs_naqd + $customer_payment_uzs_naqd;
             $branch['kassa_uzs_plastik'] = $selled_plastik - $expence_uzs_plastik - $to_company_payment_uzs_plastik + $customer_payment_plastik;
