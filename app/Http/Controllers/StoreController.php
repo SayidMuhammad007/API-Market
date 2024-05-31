@@ -6,6 +6,7 @@ use App\Http\Requests\DeleteStoreRequest;
 use App\Http\Requests\StoreRequest;
 use App\Models\Branch;
 use App\Models\Category;
+use App\Models\HistoryStore;
 use App\Models\Price;
 use App\Models\Store;
 use Illuminate\Http\Request;
@@ -192,6 +193,10 @@ class StoreController extends Controller
         foreach ($request->stores as $store) {
             Store::where('id', $store)->update([
                 'status' => '0'
+            ]);
+            HistoryStore::create([
+                'user_id' => auth()->user()->id,
+                'store_id' => $store,
             ]);
         }
         return response()->json(Store::with(['media', 'category', 'branch', 'price'])->where('branch_id', auth()->user()->branch_id)->where('status', 1)->orderBy("id", "DESC")->paginate(20));
