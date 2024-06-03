@@ -49,6 +49,7 @@ class BasketController extends Controller
      */
     public function store(StoreBasketRequest $request)
     {
+        $dollar = Price::where('id', 2)->value('value');
         foreach ($request->products as $item) {
             // get product
             $product = Store::where('id', $item['product_id'])->first();
@@ -91,16 +92,29 @@ class BasketController extends Controller
                     'total' => $sell_price * $basket->quantity,
                 ]);
             } else {
-                $basket->basket_price()->create([
-                    'agreed_price' => $sell_price,
-                    'price_sell' => $product->price_sell,
-                    'price_come' => $product->price_come,
-                    'total' => $sell_price * $basket->quantity,
-                    'price_id' => $product->price_id,
-                    'qty' => $product->quantity,
-                    'old_price_id' => $product->price_id,
-                    'store_id' => $item['product_id'],
-                ]);
+                if ($product->price_id == 2) {
+                    $basket->basket_price()->create([
+                        'agreed_price' => $sell_price * $dollar,
+                        'price_sell' => $product->price_sell * $dollar,
+                        'price_come' => $product->price_come,
+                        'total' => $sell_price * $dollar * $basket->quantity,
+                        'price_id' => 1,
+                        'qty' => $product->quantity,
+                        'old_price_id' => $product->price_id,
+                        'store_id' => $item['product_id'],
+                    ]);
+                } else {
+                    $basket->basket_price()->create([
+                        'agreed_price' => $sell_price,
+                        'price_sell' => $product->price_sell,
+                        'price_come' => $product->price_come,
+                        'total' => $sell_price * $basket->quantity,
+                        'price_id' => $product->price_id,
+                        'qty' => $product->quantity,
+                        'old_price_id' => $product->price_id,
+                        'store_id' => $item['product_id'],
+                    ]);
+                }
             }
         }
 
