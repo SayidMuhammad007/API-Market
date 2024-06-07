@@ -15,6 +15,7 @@ use App\Models\Order;
 use App\Models\Price;
 use App\Models\Store;
 use App\Models\Type;
+use Carbon\Carbon;
 
 class BasketController extends Controller
 {
@@ -195,6 +196,7 @@ class BasketController extends Controller
 
             // add price to customer debt
             if ($item['type_id'] == 4) {
+                $formattedDate = Carbon::parse($request->date)->format('Y-m-d');
                 CustomerLog::create([
                     'branch_id' => $order->branch_id,
                     'customer_id' => $item['customer_id'],
@@ -202,7 +204,7 @@ class BasketController extends Controller
                     'price_id' => $item['price_id'],
                     'price' => $item['price'],
                     'comment' => $item['comment'] ?? "",
-                    'date' => $item['date'] ?? "",
+                    'date' => $formattedDate,
                 ]);
             }
             // Recalculate after adding order price

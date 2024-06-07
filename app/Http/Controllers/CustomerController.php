@@ -13,6 +13,7 @@ use App\Models\Customer;
 use App\Models\CustomerLog;
 use App\Models\Price;
 use App\Models\Type;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -236,6 +237,7 @@ class CustomerController extends Controller
                 'error' => 'Price not found'
             ], 404);
         }
+        $formattedDate = Carbon::parse($request->date)->format('Y-m-d');
 
         CustomerLog::create([
             'branch_id' => auth()->user()->branch_id,
@@ -244,7 +246,7 @@ class CustomerController extends Controller
             'price_id' => $request->price_id,
             'comment' => $request->comment,
             'price' => $request->price,
-            'date' => $request->date,
+            'date' => $formattedDate,
         ]);
         return response()->json([
             'success' => true,
