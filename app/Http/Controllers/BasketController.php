@@ -202,6 +202,7 @@ class BasketController extends Controller
                     'price_id' => $item['price_id'],
                     'price' => $item['price'],
                     'comment' => $item['comment'] ?? "",
+                    'date' => $item['date'] ?? "",
                 ]);
             }
             // Recalculate after adding order price

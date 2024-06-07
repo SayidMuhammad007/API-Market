@@ -105,6 +105,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Customer routes
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::get('/customer/{customer}', [CustomerController::class, 'show']);
+    Route::get('/customer/notification/{date}', [CustomerController::class, 'notification']);
+    Route::get('/customer/notification/{date}/get', [CustomerController::class, 'showTodayDebts']);
+    Route::get('/customer/notification', [CustomerController::class, 'notification']);
+    Route::get('/customer/{customer}/basket', [CustomerController::class, 'baskets']);
     Route::post('/customer/update/{customer}', [CustomerController::class, 'update']);
     Route::post('/customer', [CustomerController::class, 'store']);
     Route::post('/customer/{customer}', [CustomerController::class, 'pay']);
