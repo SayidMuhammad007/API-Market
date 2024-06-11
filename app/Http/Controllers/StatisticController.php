@@ -21,7 +21,6 @@ use Carbon\Carbon;
 
 class StatisticController extends Controller
 {
-
     public function calc(Request $request)
     {
         // Get the year from the request, default to the current year if not provided
@@ -32,10 +31,7 @@ class StatisticController extends Controller
         $branch_id = $request->filled('branch_id') ? $request->input('branch_id') : 0;
 
         // Define month names in Uzbek
-        $month_names_uzbek = [
-            'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
-            'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'
-        ];
+        $month_names_uzbek = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
 
         // Initialize data array
         $data = [];
@@ -71,9 +67,11 @@ class StatisticController extends Controller
 
             $income_sum = Order::where('branch_id', $branch_id)
                 ->whereDate('created_at', $currentDate)
-                ->with(['order_price' => function ($query) use ($price_id) {
-                    $query->where('price_id', $price_id);
-                }])
+                ->with([
+                    'order_price' => function ($query) use ($price_id) {
+                        $query->where('price_id', $price_id);
+                    },
+                ])
                 ->get()
                 ->sum(function ($order) use ($price_id) {
                     if ($price_id == 2) {
@@ -82,12 +80,7 @@ class StatisticController extends Controller
                     return $order->order_price->sum('price');
                 });
 
-
-
-            $outgoing_sum = Expence::where('price_id', $price_id)
-                ->whereDate('created_at', $currentDate)
-                ->where('branch_id', $branch_id)
-                ->sum('cost');
+            $outgoing_sum = Expence::where('price_id', $price_id)->whereDate('created_at', $currentDate)->where('branch_id', $branch_id)->sum('cost');
 
             // Determine the result based on the result_type parameter
             $result = 0;
@@ -125,7 +118,6 @@ class StatisticController extends Controller
         return $daily_data;
     }
 
-
     private function calculateMonthlyData($year, $month, $price_id, $result_type, $month_names_uzbek, $branch_id)
     {
         // Initialize monthly data array
@@ -138,9 +130,11 @@ class StatisticController extends Controller
         // Calculate the income and outgoing sums for the month
         $income_sum = Order::where('branch_id', $branch_id)
             ->whereBetween('created_at', [$start_date, $end_date])
-            ->with(['order_price' => function ($query) use ($price_id) {
-                $query->where('price_id', $price_id);
-            }])
+            ->with([
+                'order_price' => function ($query) use ($price_id) {
+                    $query->where('price_id', $price_id);
+                },
+            ])
             ->get()
             ->sum(function ($order) {
                 return $order->order_price->sum('price');
@@ -185,47 +179,48 @@ class StatisticController extends Controller
         return $monthly_data;
     }
 
-
     public function branchesStat($start = null, $finish = null)
     {
         if ($start != null && $finish != null) {
-            $branches = Branch::selectRaw('id, name, 
-            (SELECT SUM(price) FROM order_prices 
+            $branches = Branch::selectRaw(
+                'id, name,
+            (SELECT SUM(price) FROM order_prices
             INNER JOIN orders ON order_prices.order_id = orders.id
-            WHERE orders.branch_id = branches.id 
+            WHERE orders.branch_id = branches.id
             AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as sell_price_uzs,
             
-                 (SELECT SUM(price) FROM order_prices 
+                 (SELECT SUM(price) FROM order_prices
                  INNER JOIN orders ON order_prices.order_id = orders.id
-                 WHERE orders.branch_id = branches.id 
+                 WHERE orders.branch_id = branches.id
                  AND DATE(order_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as sell_price_usd,
 
-                (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 1 THEN price_come 
-                ELSE (price_come * orders.dollar) END) FROM basket_prices              
+                (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 1 THEN price_come
+                ELSE (price_come * orders.dollar) END) FROM basket_prices
                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
                  INNER JOIN orders ON baskets.order_id = orders.id
-                 WHERE orders.branch_id = branches.id 
+                 WHERE orders.branch_id = branches.id
                  AND DATE(basket_prices.created_at) BETWEEN ? AND ? AND price_id = 1) as come_price_uzs,
 
-                 (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 2 THEN price_come 
-                ELSE (price_come / orders.dollar) END) FROM basket_prices      
+                 (SELECT SUM(CASE WHEN (SELECT price_id FROM stores WHERE id = basket_prices.store_id) = 2 THEN price_come
+                ELSE (price_come / orders.dollar) END) FROM basket_prices
                  INNER JOIN baskets ON basket_prices.basket_id = baskets.id
                  INNER JOIN orders ON baskets.order_id = orders.id
-                 WHERE orders.branch_id = branches.id 
+                 WHERE orders.branch_id = branches.id
                  AND DATE(basket_prices.created_at) BETWEEN ? AND ? AND price_id = 2) as come_price_usd
-                 ')
+                 ',
+            )
                 ->setBindings([$start, $finish, $start, $finish, $start, $finish, $start, $finish])
                 ->get();
 
             return response()->json([
                 'start' => $start,
                 'finish' => $finish,
-                'data' => $branches
+                'data' => $branches,
             ]);
         } else {
             return response()->json([
                 'success' => false,
-                'msg' => 'Iltimos sanani tanlang!'
+                'msg' => 'Iltimos sanani tanlang!',
             ]);
         }
     }
@@ -233,62 +228,90 @@ class StatisticController extends Controller
     public function tradeStat($start = null, $finish = null)
     {
         if ($start != null && $finish != null) {
-            $branches = Branch::selectRaw('id, name
-                 ')
-                ->get();
+            $branches = Branch::selectRaw(
+                'id, name
+                 ',
+            )->get();
             foreach ($branches as $branch) {
-                $selled_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $selled_uzs = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 1)
                     ->where('type_id', '!=', 5)
                     ->sum('price');
-                $selled_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $selled_usd = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 2)
                     ->where('type_id', '!=', 5)
                     ->sum('price');
 
-                $selled_naqd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $selled_naqd = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 1)
                     ->where('type_id', '=', 1)
                     ->sum('price');
-                $selled_click = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $selled_click = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 1)
                     ->where('type_id', '=', 3)
                     ->sum('price');
-                $selled_plastik = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $selled_plastik = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 1)
                     ->where('type_id', '=', 2)
                     ->sum('price');
-                $selled_back_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $selled_back_uzs = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 1)
                     ->where('type_id', '=', 5)
                     ->sum('price');
-                $sell_price_back_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $sell_price_back_usd = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 2)
                     ->where('type_id', '=', 5)
                     ->sum('price');
-                $sell_price_nasiya_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $sell_price_nasiya_usd = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 2)
                     ->where('type_id', '=', 4)
                     ->sum('price');
-                $sell_price_nasiya_uzs = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                    ->whereBetween('updated_at', [$start, $finish])
-                    ->pluck('id'))
+                $sell_price_nasiya_uzs = OrderPrice::whereIn(
+                    'order_id',
+                    Order::where('branch_id', $branch->id)
+                        ->whereBetween('updated_at', [$start, $finish])
+                        ->pluck('id'),
+                )
                     ->where('price_id', 1)
                     ->where('type_id', '=', 4)
                     ->sum('price');
@@ -313,6 +336,21 @@ class StatisticController extends Controller
                     ->where('price_id', 1)
                     ->where('type_id', '!=', 4)
                     ->sum('price');
+                $customer_payment_uzs_naqd = CustomerLog::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 1)
+                    ->sum('price');
+                $customer_payment_uzs_plastik = CustomerLog::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 2)
+                    ->sum('price');
+                $customer_payment_uzs_click = CustomerLog::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 3)
+                    ->sum('price');
                 $customer_payment_usd = CustomerLog::where('branch_id', $branch->id)
                     ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 2)
@@ -323,6 +361,21 @@ class StatisticController extends Controller
                     ->where('price_id', 1)
                     ->where('type_id', '!=', 4)
                     ->sum('price');
+                $to_company_payment_uzs_naqd = CompanyLog::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 1)
+                    ->sum('price');
+                $to_company_payment_uzs_plastik = CompanyLog::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 2)
+                    ->sum('price');
+                $to_company_payment_uzs_click = CompanyLog::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', '=', 3)
+                    ->sum('price');
                 $to_company_payment_usd = CompanyLog::where('branch_id', $branch->id)
                     ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 2)
@@ -332,6 +385,21 @@ class StatisticController extends Controller
                     ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 1)
                     ->sum('cost');
+                $expence_uzs_naqd = Expence::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', 1)
+                    ->sum('cost');
+                $expence_uzs_plastik = Expence::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', 2)
+                    ->sum('cost');
+                $expence_uzs_click = Expence::where('branch_id', $branch->id)
+                    ->whereBetween('updated_at', [$start, $finish])
+                    ->where('price_id', 1)
+                    ->where('type_id', 3)
+                    ->sum('cost');
                 $expence_usd = Expence::where('branch_id', $branch->id)
                     ->whereBetween('updated_at', [$start, $finish])
                     ->where('price_id', 2)
@@ -340,7 +408,6 @@ class StatisticController extends Controller
                     ->whereBetween('updated_at', [$start, $finish])
                     ->with(['order_price', 'baskets'])
                     ->get();
-
 
                 $benefit_uzs = 0;
                 $benefit_usd = 0;
@@ -360,7 +427,7 @@ class StatisticController extends Controller
                             $store_price = Store::where('id', $price->store_id)->first();
                             if ($store_price && $store_price->price_id == 2) {
                                 $benefit_usd -= $store_price->price_come * $basket->quantity;
-                            } else if ($store_price && $store_price->price_id == 1) {
+                            } elseif ($store_price && $store_price->price_id == 1) {
                                 $benefit_uzs -= $store_price->price_come * $basket->quantity;
                             }
                         }
@@ -372,13 +439,11 @@ class StatisticController extends Controller
                     $ben = $benefit_usd;
                     $benefit_usd += $benefit_uzs / $dollarAverage;
                     $benefit_uzs += $ben * $dollarAverage;
-                } else if ($benefit_uzs < 0) {
+                } elseif ($benefit_uzs < 0) {
                     $ben = $benefit_uzs;
                     $benefit_uzs += $benefit_usd * $dollarAverage;
                     $benefit_usd += $ben / $dollarAverage;
                 }
-
-
 
                 $branch['conv_usd'] = null;
                 $branch['conv_uzs'] = null;
@@ -403,6 +468,9 @@ class StatisticController extends Controller
                 $branch['expence_uzs'] = $expence_uzs;
                 $branch['expence_usd'] = $expence_usd;
                 $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
+                $branch['kassa_naqd'] = $selled_naqd - $expence_uzs_naqd - $to_company_payment_uzs_naqd + $customer_payment_uzs_naqd;
+                $branch['kassa_plastik'] = $selled_plastik - $expence_uzs_plastik - $to_company_payment_uzs_plastik + $customer_payment_uzs_plastik;
+                $branch['kassa_click'] = $selled_click - $expence_uzs_click - $to_company_payment_uzs_click + $customer_payment_uzs_click;
                 $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
                 $branch['benefit_uzs'] = $benefit_uzs;
                 $branch['benefit_usd'] = $benefit_usd;
@@ -412,39 +480,36 @@ class StatisticController extends Controller
             return response()->json([
                 'start' => $start,
                 'finish' => $finish,
-                'data' => $branches
+                'data' => $branches,
             ]);
         } else {
             return response()->json([
                 'success' => false,
-                'msg' => 'Iltimos sanani tanlang!'
+                'msg' => 'Iltimos sanani tanlang!',
             ]);
         }
     }
 
     public function allStat()
     {
-        $branches = Branch::selectRaw('id, name
-                 ')
-            ->get();
+        $branches = Branch::selectRaw(
+            'id, name
+                 ',
+        )->get();
         foreach ($branches as $branch) {
-            $selled_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                ->pluck('id'))
+            $selled_usd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)->pluck('id'))
                 ->where('price_id', 2)
                 ->where('type_id', '!=', 5)
                 ->sum('price');
-            $selled_naqd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                ->pluck('id'))
+            $selled_naqd = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)->pluck('id'))
                 ->where('price_id', 1)
                 ->where('type_id', '=', 1)
                 ->sum('price');
-            $selled_click = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                ->pluck('id'))
+            $selled_click = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)->pluck('id'))
                 ->where('price_id', 1)
                 ->where('type_id', '=', 3)
                 ->sum('price');
-            $selled_plastik = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)
-                ->pluck('id'))
+            $selled_plastik = OrderPrice::whereIn('order_id', Order::where('branch_id', $branch->id)->pluck('id'))
                 ->where('price_id', 1)
                 ->where('type_id', '=', 2)
                 ->sum('price');
@@ -495,21 +560,22 @@ class StatisticController extends Controller
             $expence_usd = Expence::where('branch_id', $branch->id)
                 ->where('price_id', 2)
                 ->sum('cost');
-            $stores = Store::where('branch_id', $branch->id)->where('status', 1)->get();
+            $stores = Store::where('branch_id', $branch->id)
+                ->where('status', 1)
+                ->get();
             $sum = $stores->where('price_id', 1)->sum(function ($store) {
                 return (float) $store->price_wholesale * (int) $store->quantity;
             });
             $dollar = $stores->where('price_id', 2)->sum(function ($store) {
                 return (float) $store->price_wholesale * (int) $store->quantity;
             });
-            
+
             $sum_come = $stores->where('price_id', 1)->sum(function ($store) {
                 return (float) $store->price_come * (int) $store->quantity;
             });
             $dollar_come = $stores->where('price_id', 2)->sum(function ($store) {
                 return (float) $store->price_come * (int) $store->quantity;
             });
-            
 
             $branch['kassa_uzs_naqd'] = $selled_naqd - $expence_uzs_naqd - $to_company_payment_uzs_naqd + $customer_payment_uzs_naqd;
             $branch['kassa_uzs_plastik'] = $selled_plastik - $expence_uzs_plastik - $to_company_payment_uzs_plastik + $customer_payment_plastik;
@@ -521,7 +587,7 @@ class StatisticController extends Controller
             $branch['dollar_come'] = $dollar_come;
         }
         return response()->json([
-            'data' => $branches
+            'data' => $branches,
         ]);
     }
 
@@ -533,22 +599,22 @@ class StatisticController extends Controller
         // Get request parameters
         $date_start = $request->filled('date_start') ? $request->input('date_start') : '2023-01-01';
         $date_finish = $request->filled('date_finish') ? $request->input('date_finish') : Carbon::now()->toDateString();
-        $type = $request->filled('type') ? $request->input('type') : "stores";
+        $type = $request->filled('type') ? $request->input('type') : 'stores';
 
-        if ($type == "stores") {
-            // ************************ start product stat 
+        if ($type == 'stores') {
+            // ************************ start product stat
             // Query most sold products
             $stores_more_selled = $this->queryStores($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
 
             // Query least sold products
             $stores_less_selled = $this->queryStores($date_start, $date_finish, 'asc', 10, $request->input('branch_id'));
-            // ************************ end product stat 
+            // ************************ end product stat
 
             return response()->json([
                 'stores_more_selled' => $stores_more_selled,
                 'stores_less_selled' => $stores_less_selled,
             ]);
-        } else if ($type == "customers") {
+        } elseif ($type == 'customers') {
             // ************************ start customer stat
             $customers = $this->queryCustomers($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
             $customers_by_price = $this->queryCustomersByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
@@ -558,19 +624,17 @@ class StatisticController extends Controller
                 'customers' => $customers,
                 'customers_by_price' => $customers_by_price,
             ]);
-        } else if ($type == "users") {
+        } elseif ($type == 'users') {
             // ************************ start user stat
             $users = $this->queryUsers($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
             $users_by_price = $this->queryUsersByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
             // ************************ end user stat
 
-
             return response()->json([
                 'users' => $users,
                 'users_by_price' => $users_by_price,
             ]);
-        } else if ($type == "users_returned") {
-
+        } elseif ($type == 'users_returned') {
             // ************************ start returned stat
             $users_returned = $this->queryReturnedByUser($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
             $users_returned_by_price = $this->queryReturnedByPrice($date_start, $date_finish, 'desc', 10, $request->input('branch_id'));
@@ -624,8 +688,6 @@ class StatisticController extends Controller
 
         return $customers->get();
     }
-
-
 
     // user
     private function queryUsers($date_start, $date_finish, $orderBy, $limit, $branch_id = null)

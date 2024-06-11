@@ -79,8 +79,7 @@ class CustomerController extends Controller
     public function baskets(Customer $customer)
     {
         $order = $customer->orders()->where('status', 0);
-        $baskets = Basket::whereIn('order_id', $order->pluck('id'))->with('store', 'basket_price')->get();
-        return response()->json($baskets);
+        return response()->json($order);
     }
 
     public function calculate($customer)
