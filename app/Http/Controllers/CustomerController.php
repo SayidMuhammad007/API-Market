@@ -78,10 +78,10 @@ class CustomerController extends Controller
 
     public function baskets(Customer $customer)
     {
-        $order = $customer->orders()->where('status', 0);
-        return response()->json($order);
+        $orders = $customer->orders()->where('status', 0)->get();
+        return response()->json($orders);
     }
-
+    
     public function calculate($customer)
     {
 
