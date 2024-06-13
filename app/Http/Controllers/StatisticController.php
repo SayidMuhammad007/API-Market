@@ -467,11 +467,11 @@ class StatisticController extends Controller
                 $branch['to_company_payment_uzs'] = $to_company_payment_uzs;
                 $branch['expence_uzs'] = $expence_uzs;
                 $branch['expence_usd'] = $expence_usd;
-                $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs;
+                $branch['kassa_uzs'] = $selled_uzs - $expence_uzs - $to_company_payment_uzs + $customer_payment_uzs - $sell_price_nasiya_uzs;
                 $branch['kassa_naqd'] = $selled_naqd - $expence_uzs_naqd - $to_company_payment_uzs_naqd + $customer_payment_uzs_naqd;
                 $branch['kassa_plastik'] = $selled_plastik - $expence_uzs_plastik - $to_company_payment_uzs_plastik + $customer_payment_uzs_plastik;
                 $branch['kassa_click'] = $selled_click - $expence_uzs_click - $to_company_payment_uzs_click + $customer_payment_uzs_click;
-                $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd;
+                $branch['kassa_usd'] = $selled_usd - $expence_usd - $to_company_payment_usd + $customer_payment_usd - $sell_price_nasiya_usd;
                 $branch['benefit_uzs'] = $benefit_uzs;
                 $branch['benefit_usd'] = $benefit_usd;
                 $branch['price_come_uzs'] = $come_to_store_uzs;
