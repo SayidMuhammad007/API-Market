@@ -147,13 +147,14 @@ class BasketController extends Controller
             if (!$type) {
                 return response()->json(['error' => 'Pul turi topilmadi'], 404);
             }
-            if ($item['customer_id']) {
+            if (isset($item['customer_id']) && $item['customer_id']) {
                 $customer = Customer::find($item['customer_id']);
                 if (!$customer) {
                     return response()->json(['error' => 'Mijoz topilmadi'], 404);
                 }
             }
-            if ($item['company_id']) {
+            
+            if (isset($item['company_id']) && $item['company_id']) {
                 $company = Company::find($item['company_id']);
                 if (!$company) {
                     return response()->json(['error' => 'Firma topilmadi'], 404);
