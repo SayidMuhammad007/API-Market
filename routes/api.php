@@ -133,7 +133,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/expenses/{expence}', [ExpenceController::class, 'destroy']);
 
     // Order routes
-    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/sell_type/{type}', [OrderController::class, 'index']);
     Route::get('/orders/selled', [OrderController::class, 'selled']);
     Route::get('/order/{order}', [OrderController::class, 'show']);
     Route::get('/orders/waiting', [OrderController::class, 'waitingOrders']);

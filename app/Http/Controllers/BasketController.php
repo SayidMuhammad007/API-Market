@@ -9,6 +9,7 @@ use App\Http\Requests\ToWaitingRequest;
 use App\Http\Requests\UpdateBasketRequest;
 use App\Models\Basket;
 use App\Models\BasketPrice;
+use App\Models\Company;
 use App\Models\Customer;
 use App\Models\CustomerLog;
 use App\Models\Order;
@@ -152,6 +153,12 @@ class BasketController extends Controller
                     return response()->json(['error' => 'Mijoz topilmadi'], 404);
                 }
             }
+            if ($item['company_id']) {
+                $company = Company::find($item['company_id']);
+                if (!$company) {
+                    return response()->json(['error' => 'Firma topilmadi'], 404);
+                }
+            }
 
             // Get user's open basket
             $basket = $user->baskets()->where('status', 0)->first();
@@ -177,6 +184,7 @@ class BasketController extends Controller
                     'user_id' => $user->id,
                     'dollar' => $dollar,
                     'customer_id' => $item['customer_id'] ?? null,
+                    'company_id' => $item['company_id'] ?? null,
                     'status' => 1,
                     'comment' => $request->comment ?? null,
                 ]);
@@ -200,6 +208,7 @@ class BasketController extends Controller
                 CustomerLog::create([
                     'branch_id' => $order->branch_id,
                     'customer_id' => $item['customer_id'],
+                    'company_id' => $item['company_id'] ?? null,
                     'type_id' => $item['type_id'],
                     'price_id' => $item['price_id'],
                     'price' => $item['price'],
@@ -403,6 +412,7 @@ class BasketController extends Controller
                 'branch_id' => $user->branch_id,
                 'user_id' => $user->id,
                 'customer_id' => $request->customer_id ?? null,
+                'company_id' => $request->company_id ?? null,
                 'status' => 2,
             ]);
             $order->update(['status' => 2]);

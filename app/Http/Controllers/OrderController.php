@@ -13,9 +13,13 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, $type = 'customer')
     {
-        $query = Order::where('branch_id', auth()->user()->branch_id)->with(['customer', 'user'])->where('status', 0)->orderBy('id', 'desc');
+        if ($type == 'customer') {
+            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['customer', 'user'])->where('status', 0)->orderBy('id', 'desc');
+        } else {
+            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['company', 'user'])->where('status', 0)->orderBy('id', 'desc');
+        }
 
         // Check if search query parameter is provided
         if ($request->has('search')) {
@@ -148,6 +152,6 @@ class OrderController extends Controller
             $sumTotal -= $reduced_price;
         }
         // Load related data and return along with calculated totals
-        return [$order->load(['customer', 'order_price','user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']), $dollarTotal, $sumTotal, $reduced_price, $reduced_price_type];
+        return [$order->load(['customer', 'order_price', 'user', 'baskets', 'baskets.store', 'baskets.store.category', 'baskets.basket_price']), $dollarTotal, $sumTotal, $reduced_price, $reduced_price_type];
     }
 }
