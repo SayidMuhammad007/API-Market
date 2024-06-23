@@ -10,6 +10,7 @@ use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateDebtCompanyRequest;
 use App\Models\Branch;
 use App\Models\Company;
+use App\Models\CurrencyRate;
 use App\Models\Price;
 use App\Models\Store;
 use App\Models\Type;
@@ -207,31 +208,60 @@ class CompanyController extends Controller
 
     public function showCompanyData($company)
     {
-        $dollar = Price::where('id', 2)->value('value');
+        $data = $company->companyLog()->with(['branch', 'type', 'company'])
+            ->where('branch_id', auth()->user()->branch_id)
+            ->get();
 
-        $data = $company->companyLog()->with(['branch', 'type', 'company'])->where('branch_id', auth()->user()->branch_id)->get();
-        // Calculate total debts and payments in both currencies
-        $debts_sum = $company->companyLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
-        $debts_dollar = $company->companyLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
-        $payments_dollar = $company->companyLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
-        $payments_sum = $company->companyLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
-
-        // Calculate total debts and payments in soums and dollars
-        $total_sum = $debts_sum - $payments_sum;
-        $total_dollar = $debts_dollar - $payments_dollar;
-
-        // Convert negative totals to positive if necessary
-        if ($total_sum < 0) {
-            $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
-            // return response()->json($total_dollar);
-            $total_sum = 0;
-        } else if ($total_dollar < 0) {
-            $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
-            $total_dollar = 0;
+        $debts_dollar = 0;
+        $payments_dollar = 0;
+        foreach ($company->companyLog as $val) {
+            if ($val->type_id == 4 && $val->price_id == 1) {
+                $dollar = CurrencyRate::where('created_at', '<=', $val->created_at)->where('updated_at', '>', $val->created_at)->value('price');
+                if (!$dollar) {
+                    $dollar = CurrencyRate::orderBy('id', 'desc')->value('price');
+                }
+                $debts_dollar = $debts_dollar + $val->price / $dollar;
+            } else if ($val->type_id == 4 && $val->price_id == 2) {
+                $debts_dollar = $debts_dollar + $val->price;
+            } else if ($val->type_id != 4 && $val->price_id == 1) {
+                $dollar = CurrencyRate::where('created_at', '<=', $val->created_at)->where('updated_at', '>', $val->created_at)->value('price');
+                if (!$dollar) {
+                    $dollar = CurrencyRate::orderBy('id', 'desc')->value('price');
+                }
+                $payments_dollar = $payments_dollar + $val->price / $dollar;
+            } else if ($val->type_id != 4 && $val->price_id == 2) {
+                $payments_dollar = $payments_dollar + $val->price;
+            }
         }
-        $all_dollar = $total_dollar + ($total_sum / $dollar);
-        $all_sum = $total_sum + ($total_dollar * $dollar);
-        return [$data, $all_dollar, $all_sum];
+        $dollar = Price::where('id', 2)->value('value');
+        $total_sum = 0;
+        $total_dollar = $debts_dollar - $payments_dollar;
+        $total_sum = $total_dollar * $dollar;
+        // $dollar = Price::where('id', 2)->value('value');
+
+        // $data = $company->companyLog()->with(['branch', 'type', 'company'])->where('branch_id', auth()->user()->branch_id)->get();
+        // // Calculate total debts and payments in both currencies
+        // $debts_sum = $company->companyLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
+        // $debts_dollar = $company->companyLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
+        // $payments_dollar = $company->companyLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
+        // $payments_sum = $company->companyLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
+
+        // // Calculate total debts and payments in soums and dollars
+        // $total_sum = $debts_sum - $payments_sum;
+        // $total_dollar = $debts_dollar - $payments_dollar;
+
+        // // Convert negative totals to positive if necessary
+        // if ($total_sum < 0) {
+        //     $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
+        //     // return response()->json($total_dollar);
+        //     $total_sum = 0;
+        // } else if ($total_dollar < 0) {
+        //     $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
+        //     $total_dollar = 0;
+        // }
+        // $all_dollar = $total_dollar + ($total_sum / $dollar);
+        // $all_sum = $total_sum + ($total_dollar * $dollar);
+        return [$data, $total_dollar, $total_sum];
     }
 
     public function storeToCompany(AttachStoresRequest $request, Company $company)
