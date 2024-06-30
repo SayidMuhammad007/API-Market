@@ -16,9 +16,11 @@ class OrderController extends Controller
     public function index(Request $request, $type = 'customer')
     {
         if ($type == 'customer') {
-            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['customer', 'user'])->where('status', 0)->orderBy('id', 'desc');
-        } else {
-            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['company', 'user'])->where('status', 0)->orderBy('id', 'desc');
+            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['customer', 'user'])->whereNotNull('customer_id')->where('status', 0)->orderBy('id', 'desc');
+        } else if($type == 'company') {
+            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['company', 'user'])->whereNotNull('company_id')->where('status', 0)->orderBy('id', 'desc');
+        }else{
+            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['customer', 'company', 'user'])->where('status', 0)->orderBy('id', 'desc');
         }
 
         // Check if search query parameter is provided
