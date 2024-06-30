@@ -13,24 +13,35 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, $type = 'customer')
+    public function index(Request $request, $type = 'all')
     {
+        // Initialize base query
+        $query = Order::where('branch_id', auth()->user()->branch_id)
+            ->where('status', 0)
+            ->orderBy('id', 'desc');
+
+        // Add type-specific conditions
         if ($type == 'customer') {
-            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['customer', 'user'])->whereNotNull('customer_id')->where('status', 0)->orderBy('id', 'desc');
-        } else if($type == 'company') {
-            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['company', 'user'])->whereNotNull('company_id')->where('status', 0)->orderBy('id', 'desc');
-        }else{
-            $query = Order::where('branch_id', auth()->user()->branch_id)->with(['customer', 'company', 'user'])->where('status', 0)->orderBy('id', 'desc');
+            $query->with(['customer', 'user'])
+                ->whereNotNull('customer_id');
+        } else if ($type == 'company') {
+            $query->with(['company', 'user'])
+                ->whereNotNull('company_id');
+        } else {
+            $query->with(['customer', 'company', 'user']);
         }
 
         // Check if search query parameter is provided
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where(function ($query) use ($searchTerm) {
-                $query->where('id', 'like', "%$searchTerm%");
-                $query->orWhereHas('customer', function ($customerQuery) use ($searchTerm) {
-                    $customerQuery->where('name', 'like', "%$searchTerm%");
-                });
+                $query->where('id', 'like', "%$searchTerm%")
+                    ->orWhereHas('customer', function ($customerQuery) use ($searchTerm) {
+                        $customerQuery->where('name', 'like', "%$searchTerm%");
+                    })
+                    ->orWhereHas('company', function ($companyQuery) use ($searchTerm) {
+                        $companyQuery->where('name', 'like', "%$searchTerm%");
+                    });
             });
         }
 
@@ -39,6 +50,7 @@ class OrderController extends Controller
 
         return response()->json($orders);
     }
+
 
     public function selled(Request $request)
     {
