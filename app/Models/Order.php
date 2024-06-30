@@ -25,6 +25,11 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
