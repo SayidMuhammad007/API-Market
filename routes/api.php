@@ -75,6 +75,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/company/update/{company}', [CompanyController::class, 'update']);
     Route::post('/company/pay/{company}', [CompanyController::class, 'pay']);
     Route::post('/company/debt/{company}', [CompanyController::class, 'debt']);
+    Route::get('/company/{company}/basket', [CompanyController::class, 'baskets']);
     Route::post('/company/debt/{company}/update', [CompanyController::class, 'updateDebt']);
     Route::post('/company/debt/{company}/delete', [CompanyController::class, 'deleteDebt']);
     Route::post('/company/{company}/stores/attach', [CompanyController::class, 'storeToCompany']);
