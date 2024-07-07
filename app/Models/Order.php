@@ -14,6 +14,7 @@ class Order extends Model
         'user_id',
         'branch_id',
         'customer_id',
+        'company_id',
         'check_id',
         'dollar',
         'status',
