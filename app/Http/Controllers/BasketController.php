@@ -153,7 +153,7 @@ class BasketController extends Controller
                     return response()->json(['error' => 'Mijoz topilmadi'], 404);
                 }
             }
-            
+
             if (isset($item['company_id']) && $item['company_id']) {
                 $company = Company::find($item['company_id']);
                 if (!$company) {
@@ -189,13 +189,23 @@ class BasketController extends Controller
                     'status' => 1,
                     'comment' => $request->comment ?? null,
                 ]);
+
                 $basket = $user->baskets()->where('status', 0)->get();
                 foreach ($basket as $test) {
                     $test->update(['order_id' => $order->id]);
                 }
             }
 
-
+            if (isset($item['company_id'])) {
+                $company = Company::where('id', $item['company_id'])->first();
+                $company->companyLog()->create([
+                    'type_id' => $item['type_id'],
+                    'price_id' => $item['price_id'],
+                    'comment' => '',
+                    'price' => $item['price'],
+                    'branch_id' => $company->branch_id,
+                ]);
+            }
             // Add order price
             $order->order_price()->create([
                 'price_id' => $item['price_id'],
