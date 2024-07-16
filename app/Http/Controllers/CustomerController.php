@@ -27,7 +27,7 @@ class CustomerController extends Controller
         $query = Customer::where('branch_id', $user->branch_id)
             ->where('status', 1)
             ->orderBy('id', 'desc');
-
+    
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where('name', 'like', "%$searchTerm%");
@@ -35,11 +35,19 @@ class CustomerController extends Controller
             $searchTerm = $request->input('id');
             $query->where('id', $searchTerm);
         }
-
+    
         // Paginate the results
-        $customers = $query->withSum('customerLog', 'price')->paginate(1000);
+        $customers = $query->paginate(1000);
+    
+        // Calculate debtor status for each customer
+        $customers->getCollection()->transform(function ($customer) {
+            $customer->debtor_status = $this->calculateDebt($customer);
+            return $customer;
+        });
+    
         return response()->json($customers);
     }
+    
 
 
     /**
@@ -142,6 +150,40 @@ class CustomerController extends Controller
         // $all_dollar = $total_dollar + ($total_sum / $dollar);
         // $all_sum = $total_sum + ($total_dollar * $dollar);
         return [$data, $total_dollar, $total_sum];
+    }
+
+    public function calculateDebt($customer)
+    {
+        $debts_dollar = 0;
+        $payments_dollar = 0;
+        foreach ($customer->customerLog as $val) {
+            if ($val->type_id == 4 && $val->price_id == 1) {
+                $dollar = CurrencyRate::where('created_at', '<=', $val->created_at)->where('updated_at', '>', $val->created_at)->value('price');
+                if (!$dollar) {
+                    $dollar = CurrencyRate::orderBy('id', 'desc')->value('price');
+                }
+                $debts_dollar = $debts_dollar + $val->price / $dollar;
+            } else if ($val->type_id == 4 && $val->price_id == 2) {
+                $debts_dollar = $debts_dollar + $val->price;
+            } else if ($val->type_id != 4 && $val->price_id == 1) {
+                $dollar = CurrencyRate::where('created_at', '<=', $val->created_at)->where('updated_at', '>', $val->created_at)->value('price');
+                if (!$dollar) {
+                    $dollar = CurrencyRate::orderBy('id', 'desc')->value('price');
+                }
+                $payments_dollar = $payments_dollar + $val->price / $dollar;
+            } else if ($val->type_id != 4 && $val->price_id == 2) {
+                $payments_dollar = $payments_dollar + $val->price;
+            }
+        }
+        $dollar = Price::where('id', 2)->value('value');
+        $total_sum = 0;
+        $total_dollar = $debts_dollar - $payments_dollar;
+        $total_sum = $total_dollar * $dollar;
+        $status = false;
+        if($total_sum >= 0 || $total_dollar >= 0){
+            $status = true;
+        }
+        return $status;
     }
 
 
