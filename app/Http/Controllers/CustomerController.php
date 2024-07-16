@@ -37,7 +37,7 @@ class CustomerController extends Controller
         }
 
         // Paginate the results
-        $customers = $query->paginate(1000);
+        $customers = $query->withSum('customerLog', 'price')->paginate(1000);
         return response()->json($customers);
     }
 
