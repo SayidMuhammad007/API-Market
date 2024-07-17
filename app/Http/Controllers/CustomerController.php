@@ -27,7 +27,7 @@ class CustomerController extends Controller
         $query = Customer::where('branch_id', $user->branch_id)
             ->where('status', 1)
             ->orderBy('id', 'desc');
-    
+
         if ($request->has('search')) {
             $searchTerm = $request->input('search');
             $query->where('name', 'like', "%$searchTerm%");
@@ -35,19 +35,19 @@ class CustomerController extends Controller
             $searchTerm = $request->input('id');
             $query->where('id', $searchTerm);
         }
-    
+
         // Paginate the results
         $customers = $query->paginate(1000);
-    
+
         // Calculate debtor status for each customer
         $customers->getCollection()->transform(function ($customer) {
             $customer->debtor_status = $this->calculateDebt($customer);
             return $customer;
         });
-    
+
         return response()->json($customers);
     }
-    
+
 
 
     /**
@@ -89,7 +89,7 @@ class CustomerController extends Controller
         $orders = $customer->orders()->where('status', 0)->get();
         return response()->json($orders);
     }
-    
+
     public function calculate($customer)
     {
 
@@ -179,9 +179,11 @@ class CustomerController extends Controller
         $total_sum = 0;
         $total_dollar = $debts_dollar - $payments_dollar;
         $total_sum = $total_dollar * $dollar;
-        $status = false;
-        if($total_sum >= 0 || $total_dollar >= 0){
-            $status = true;
+        $status = 'white';
+        if ($total_sum > 0 || $total_dollar > 0) {
+            $status = 'green';
+        } elseif ($total_sum < 0 || $total_dollar < 0) {
+            $status = 'red';
         }
         return $status;
     }
