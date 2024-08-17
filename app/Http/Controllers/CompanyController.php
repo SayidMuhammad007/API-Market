@@ -300,10 +300,10 @@ class CompanyController extends Controller
         $debts_dollar = $company->companyLog->where('type_id', 4)->where('price_id', 2)->sum('price');
         $debts_soum = $company->companyLog->where('type_id', 4)->where('price_id', 1)->sum('price');
 
-        $payments_dollar = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 2)->where()->sum('price');
-        $payments_dollar2 = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 1)->whereNotNull('parent_id')->where()->sum('convert');
+        $payments_dollar = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
+        $payments_dollar2 = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 1)->whereNotNull('parent_id')->sum('convert');
         $payments_soum = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
-        $payments_soum2 = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 2)->whereNotNull('parent_id')->where()->sum('convert');
+        $payments_soum2 = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 2)->whereNotNull('parent_id')->sum('convert');
 
         $total_dollar = $debts_dollar - $payments_dollar - $payments_dollar2;
         $total_sum = $debts_soum - $payments_soum - $payments_soum2;
