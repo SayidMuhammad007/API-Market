@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateDebtCompanyRequest;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\CurrencyRate;
+use App\Models\CustomerLog;
 use App\Models\Price;
 use App\Models\Store;
 use App\Models\Type;
@@ -71,7 +72,11 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
-        list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
+        if (request()->input('way') == 1) {
+            list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
+        } else {
+            list($data, $debts_dollar, $debts_sum) = $this->showCompanyDataBySecondWay($company);
+        }
         return response()->json([
             'data' => $data,
             'debts_sum' => $debts_sum,
@@ -127,14 +132,50 @@ class CompanyController extends Controller
                     'error' => 'Price not found'
                 ]);
             }
+            $parent = CustomerLog::where('id', $payment['parent_id'])->first();
+            $dollar = Price::where('id', 2)->value('value');
 
-            $company->companyLog()->create([
-                'type_id' => $payment['type_id'],
-                'price_id' => $payment['price_id'],
-                'comment' => $payment['comment'],
-                'price' => $payment['price'],
-                'branch_id' => $company->branch_id,
-            ]);
+            if ($payment['price_id'] == 1 && $parent->price_id == 1) {
+                $company->companyLog()->create([
+                    'type_id' => $payment['type_id'],
+                    'price_id' => $payment['price_id'],
+                    'comment' => $payment['comment'],
+                    'price' => $payment['price'],
+                    'parent_id' => $payment['parent_id'],
+                    'convert' => $payment['price'],
+                    'branch_id' => $company->branch_id,
+                ]);
+            } else if ($payment['price_id'] == 1 && $parent->price_id == 2) {
+                $company->companyLog()->create([
+                    'type_id' => $payment['type_id'],
+                    'price_id' => $payment['price_id'],
+                    'comment' => $payment['comment'],
+                    'price' => $payment['price'],
+                    'parent_id' => $payment['parent_id'],
+                    'convert' => $payment['price'] / $dollar,
+                    'branch_id' => $company->branch_id,
+                ]);
+            } else if ($payment['price_id'] == 2 && $parent->price_id == 1) {
+                $company->companyLog()->create([
+                    'type_id' => $payment['type_id'],
+                    'price_id' => $payment['price_id'],
+                    'comment' => $payment['comment'],
+                    'price' => $payment['price'],
+                    'parent_id' => $payment['parent_id'],
+                    'convert' => $payment['price'] * $dollar,
+                    'branch_id' => $company->branch_id,
+                ]);
+            } else if ($payment['price_id'] == 2 && $parent->price_id == 2) {
+                $company->companyLog()->create([
+                    'type_id' => $payment['type_id'],
+                    'price_id' => $payment['price_id'],
+                    'comment' => $payment['comment'],
+                    'price' => $payment['price'],
+                    'parent_id' => $payment['parent_id'],
+                    'convert' => $payment['price'],
+                    'branch_id' => $company->branch_id,
+                ]);
+            }
         }
 
         list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
@@ -240,25 +281,35 @@ class CompanyController extends Controller
         $total_sum = $total_dollar * $dollar;
 
         $data = $company->companyLog()->with(['branch', 'type', 'company'])->where('branch_id', auth()->user()->branch_id)->get();
-        // // Calculate total debts and payments in both currencies
-        // $debts_sum = $company->companyLog()->where('type_id', 4)->where('price_id', 1)->sum('price');
-        // $debts_dollar = $company->companyLog()->where('type_id', 4)->where('price_id', 2)->sum('price');
-        // $payments_dollar = $company->companyLog()->where('type_id', '!=', 4)->where('price_id', 2)->sum('price');
-        // $payments_sum = $company->companyLog()->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
-
-        // // Calculate total debts and payments in soums and dollars
-        // $total_sum = $debts_sum - $payments_sum;
-        // $total_dollar = $debts_dollar - $payments_dollar;
 
         // Convert negative totals to positive if necessary
         if ($total_sum < 0) {
-            $total_dollar -= abs($total_sum) / $dollar; // Convert soums to dollars
-            // return response()->json($total_dollar);
+            $total_dollar -= abs($total_sum) / $dollar;
             $total_sum = 0;
         } else if ($total_dollar < 0) {
-            $total_sum -= abs($total_dollar) * $dollar; // Convert dollars to soums
+            $total_sum -= abs($total_dollar) * $dollar;
             $total_dollar = 0;
         }
+        return [$data, $total_dollar, $total_sum];
+    }
+
+    public function showCompanyDataBySecondWay($company)
+    {
+        $debts_dollar = 0;
+        $payments_dollar = 0;
+        $debts_dollar = $company->companyLog->where('type_id', 4)->where('price_id', 2)->sum('price');
+        $debts_soum = $company->companyLog->where('type_id', 4)->where('price_id', 1)->sum('price');
+
+        $payments_dollar = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 2)->where()->sum('price');
+        $payments_dollar2 = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 1)->whereNotNull('parent_id')->where()->sum('convert');
+        $payments_soum = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 1)->sum('price');
+        $payments_soum2 = $company->companyLog->where('type_id', '!=', 4)->where('price_id', 2)->whereNotNull('parent_id')->where()->sum('convert');
+
+        $total_dollar = $debts_dollar - $payments_dollar - $payments_dollar2;
+        $total_sum = $debts_soum - $payments_soum - $payments_soum2;
+
+        $data = $company->companyLog()->with(['branch', 'type', 'company'])->where('branch_id', auth()->user()->branch_id)->get();
+
         return [$data, $total_dollar, $total_sum];
     }
 
@@ -267,6 +318,7 @@ class CompanyController extends Controller
         $orders = $company->orders()->where('status', 0)->get();
         return response()->json($orders);
     }
+
     public function storeToCompany(AttachStoresRequest $request, Company $company)
     {
         foreach ($request->stores as $store) {

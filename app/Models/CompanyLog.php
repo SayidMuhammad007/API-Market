@@ -15,6 +15,8 @@ class CompanyLog extends Model
         'price_id',
         'type_id',
         'price',
+        'parent_id',
+        'convert',
         'comment'
     ];
 
