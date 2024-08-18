@@ -134,7 +134,11 @@ class CompanyController extends Controller
             }
             $parent = CustomerLog::where('id', $payment['parent_id'])->first();
             $dollar = Price::where('id', 2)->value('value');
-
+            if (!$parent) {
+                return response()->json([
+                    'error' => 'Parent not found'
+                ]);
+            }
             // Initialize the conversion value
             $convert = $payment['price'];
 
