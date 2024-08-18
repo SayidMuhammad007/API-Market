@@ -12,7 +12,6 @@ use App\Models\Branch;
 use App\Models\Company;
 use App\Models\CompanyLog;
 use App\Models\CurrencyRate;
-use App\Models\CustomerLog;
 use App\Models\Price;
 use App\Models\Store;
 use App\Models\Type;
