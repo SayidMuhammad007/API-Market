@@ -10,6 +10,7 @@ use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateDebtCompanyRequest;
 use App\Models\Branch;
 use App\Models\Company;
+use App\Models\CompanyLog;
 use App\Models\CurrencyRate;
 use App\Models\CustomerLog;
 use App\Models\Price;
@@ -132,7 +133,7 @@ class CompanyController extends Controller
                     'error' => 'Price not found'
                 ]);
             }
-            $parent = CustomerLog::where('id', $payment['parent_id'])->first();
+            $parent = CompanyLog::where('id', $payment['parent_id'])->first();
             $dollar = Price::where('id', 2)->value('value');
             if (!$parent) {
                 return response()->json([
