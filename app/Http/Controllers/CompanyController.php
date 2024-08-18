@@ -135,47 +135,26 @@ class CompanyController extends Controller
             $parent = CustomerLog::where('id', $payment['parent_id'])->first();
             $dollar = Price::where('id', 2)->value('value');
 
-            if ($payment['price_id'] == 1 && $parent->price_id == 1) {
-                $company->companyLog()->create([
-                    'type_id' => $payment['type_id'],
-                    'price_id' => $payment['price_id'],
-                    'comment' => $payment['comment'],
-                    'price' => $payment['price'],
-                    'parent_id' => $payment['parent_id'],
-                    'convert' => $payment['price'],
-                    'branch_id' => $company->branch_id,
-                ]);
-            } else if ($payment['price_id'] == 1 && $parent->price_id == 2) {
-                $company->companyLog()->create([
-                    'type_id' => $payment['type_id'],
-                    'price_id' => $payment['price_id'],
-                    'comment' => $payment['comment'],
-                    'price' => $payment['price'],
-                    'parent_id' => $payment['parent_id'],
-                    'convert' => $payment['price'] / $dollar,
-                    'branch_id' => $company->branch_id,
-                ]);
-            } else if ($payment['price_id'] == 2 && $parent->price_id == 1) {
-                $company->companyLog()->create([
-                    'type_id' => $payment['type_id'],
-                    'price_id' => $payment['price_id'],
-                    'comment' => $payment['comment'],
-                    'price' => $payment['price'],
-                    'parent_id' => $payment['parent_id'],
-                    'convert' => $payment['price'] * $dollar,
-                    'branch_id' => $company->branch_id,
-                ]);
-            } else if ($payment['price_id'] == 2 && $parent->price_id == 2) {
-                $company->companyLog()->create([
-                    'type_id' => $payment['type_id'],
-                    'price_id' => $payment['price_id'],
-                    'comment' => $payment['comment'],
-                    'price' => $payment['price'],
-                    'parent_id' => $payment['parent_id'],
-                    'convert' => $payment['price'],
-                    'branch_id' => $company->branch_id,
-                ]);
+            // Initialize the conversion value
+            $convert = $payment['price'];
+
+            // Determine the conversion based on price IDs
+            if ($payment['price_id'] == 1 && $parent->price_id == 2) {
+                $convert = $payment['price'] / $dollar;
+            } elseif ($payment['price_id'] == 2 && $parent->price_id == 1) {
+                $convert = $payment['price'] * $dollar;
             }
+
+            // Create the company log
+            $company->companyLog()->create([
+                'type_id' => $payment['type_id'],
+                'price_id' => $payment['price_id'],
+                'comment' => $payment['comment'],
+                'price' => $payment['price'],
+                'parent_id' => $payment['parent_id'],
+                'convert' => $convert,
+                'branch_id' => $company->branch_id,
+            ]);
         }
 
         list($data, $debts_dollar, $debts_sum) = $this->showCompanyData($company);
