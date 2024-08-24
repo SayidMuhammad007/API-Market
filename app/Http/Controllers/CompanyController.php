@@ -140,7 +140,7 @@ class CompanyController extends Controller
                 ]);
             }
             // Initialize the conversion value
-            $convert = $payment['price'];
+            $convert = null;
 
             // Determine the conversion based on price IDs
             if ($payment['price_id'] == 1 && $parent->price_id == 2) {
