@@ -16,7 +16,9 @@ class CustomerLog extends Model
         'price_id',
         'comment',
         'price',
-        'date'
+        'date',
+        'parent_id',
+        'convert',
     ];
 
     public function branch(): BelongsTo
@@ -37,5 +39,10 @@ class CustomerLog extends Model
     public function price(): BelongsTo
     {
         return $this->belongsTo(Price::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(CustomerLog::class, 'parent_id');
     }
 }

@@ -37,6 +37,13 @@ class StoreController extends Controller
                     });
             });
         }
+        if ($request->filled('categoryId')) {
+            $searchTerm = $request->input('categoryId');
+            $query->whereHas('category', function ($categoryQuery) use ($searchTerm) {
+                $categoryQuery->where('name', 'like', "%{$searchTerm}%");
+            });
+        }
+
 
         // Paginate the results
         $stores = $query->orderBy("quantity", 'ASC')->paginate(10);

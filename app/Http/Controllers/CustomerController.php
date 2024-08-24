@@ -74,7 +74,11 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        list($data, $dollar, $sum) = $this->calculate($customer);
+        if (request()->input('way') == 1) {
+            list($data, $dollar, $sum) = $this->calculate($customer);
+        } else {
+            list($data, $dollar, $sum) = $this->showCompanyDataBySecondWay($customer);
+        }
         return response()->json([
             'data' => $data,
             'debts' => [
@@ -149,6 +153,55 @@ class CustomerController extends Controller
         // }
         // $all_dollar = $total_dollar + ($total_sum / $dollar);
         // $all_sum = $total_sum + ($total_dollar * $dollar);
+        return [$data, $total_dollar, $total_sum];
+    }
+
+    public function showCompanyDataBySecondWay($customer)
+    {
+        $debts_dollar = 0;
+        $payments_dollar = 0;
+        $debts_dollar = $customer->customerLog->where('type_id', 4)->where('price_id', 2)->sum('price');
+        $debts_soum = $customer->customerLog->where('type_id', 4)->where('price_id', 1)->sum('price');
+
+        $payments_dollar = $customer->customerLog
+            ->where('type_id', '!=', 4)
+            ->where('price_id', 2)
+            ->filter(function ($log) {
+                return $log->parent && $log->parent->price_id == 2;
+            })
+            ->sum('price');
+        $payments_dollar2 = $customer->customerLog
+            ->where('type_id', '!=', 4)
+            ->where('price_id', 1)
+            ->whereNotNull('parent_id')
+            ->filter(function ($log) {
+                return $log->parent && $log->parent->price_id == 2;
+            })
+            ->sum('convert');
+
+        $payments_soum = $customer->customerLog
+            ->where('type_id', '!=', 4)
+            ->where('price_id', 1)
+            ->filter(function ($log) {
+                return $log->parent && $log->parent->price_id == 1;
+            })
+            ->sum('price');
+
+        $payments_soum2 = $customer->customerLog
+            ->where('type_id', '!=', 4)
+            ->where('price_id', 2)
+            ->filter(function ($log) {
+                return $log->parent && $log->parent->price_id == 1;
+            })
+            ->sum('convert');
+
+        $customer->customerLog->where('type_id', '!=', 4)->where('price_id', 2)->whereNotNull('parent_id')->sum('convert');
+
+        $total_dollar = $debts_dollar - $payments_dollar - $payments_dollar2;
+        $total_sum = $debts_soum - $payments_soum - $payments_soum2;
+
+        $data = $customer->customerLog()->with(['branch', 'type', 'customer'])->where('branch_id', auth()->user()->branch_id)->get();
+
         return [$data, $total_dollar, $total_sum];
     }
 
@@ -246,12 +299,27 @@ class CustomerController extends Controller
                     'error' => 'Price not found'
                 ]);
             }
+            $parent = CustomerLog::where('id', $payment['parent_id'])->first();
+            $dollar = Price::where('id', 2)->value('value');
+            if (!$parent) {
+                return response()->json([
+                    'error' => 'Parent not found'
+                ]);
+            }
+            $convert = null;
 
+            // Determine the conversion based on price IDs
+            if ($payment['price_id'] == 1 && $parent->price_id == 2) {
+                $convert = $payment['price'] / $dollar;
+            } elseif ($payment['price_id'] == 2 && $parent->price_id == 1) {
+                $convert = $payment['price'] * $dollar;
+            }
             $customer->customerLog()->create([
                 'type_id' => $payment['type_id'],
                 'price_id' => $payment['price_id'],
                 'comment' => $payment['comment'],
                 'price' => $payment['price'],
+                'convert' => $convert,
                 'branch_id' => $customer->branch_id,
             ]);
         }
