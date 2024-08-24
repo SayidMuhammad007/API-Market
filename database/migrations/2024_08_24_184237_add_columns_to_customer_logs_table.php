@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('customer_logs', function (Blueprint $table) {
-            $table->foreign('parent_id')->constrained('customer_logs')->cascadeOnDelete();
-            $table->string('convert');
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('customer_logs')
+                ->cascadeOnDelete();
+            $table->string('convert')->nullable();
         });
     }
 
