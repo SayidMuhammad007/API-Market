@@ -39,4 +39,9 @@ class CompanyLog extends Model
     {
         return $this->belongsTo(Type::class);
     }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(CompanyLog::class, 'parent_id');
+    }
 }
