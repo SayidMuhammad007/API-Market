@@ -39,9 +39,7 @@ class StoreController extends Controller
         }
         if ($request->filled('categoryId')) {
             $searchTerm = $request->input('categoryId');
-            $query->whereHas('category', function ($categoryQuery) use ($searchTerm) {
-                $categoryQuery->where('name', 'like', "%{$searchTerm}%");
-            });
+            $query->where('category_id', $searchTerm);
         }
 
 
