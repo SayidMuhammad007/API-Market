@@ -37,7 +37,7 @@ class StoreController extends Controller
                     });
             });
         }
-        if ($request->filled('categoryId')) {
+        if ($request->input('categoryId')) {
             $searchTerm = $request->input('categoryId');
             $query->where('category_id', $searchTerm);
         }
